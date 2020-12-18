@@ -1,7 +1,6 @@
-# Web Common - Mostly WebDriver Conneciton mode
+# Web Common - Mostly WebDriver Connection mode
 
 * Download automatically - Firefox
 * Download - Chrome, EDGE
 * Firefox - Disable Notifications
 * Copy Profile Firefox
-* Logging and output of console_DOT_log()

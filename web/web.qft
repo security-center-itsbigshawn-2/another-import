@@ -275,86 +275,7 @@ Im Handbuch finden Sie ein vollständiges Beispiel.</comment>
       </ProcedureCall>
     </TestCase>
   </TestSet>
-  <TestSet id="_1k1L" name="Logging and output of console_DOT_log()">
-    <comment>@author pv</comment>
-    <CommentStep id="_1k3E">
-      <heading>This will not log the messages just print them out in the terminal</heading>
-    </CommentStep>
-    <TestCase id="_1k23" name="Show console_DOT_log() in the Terminal">
-      <comment>@author cacse1</comment>
-      <DependencyReference id="_1k24" reference="Open Browser"/>
-      <ComponentWaiter client="$(client)" component="linkAccept" id="_1k2+"
-                       resvarname="accept" timeout="1000"/>
-      <ProcedureCall id="_1k2G" procedure="Logging.showWebConsoleDotLog"/>
-      <ClientScriptStep client="$(client)" id="_1k28">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.log("I am a console log entry1");
-""")</code>
-      </ClientScriptStep>
-      <ClientScriptStep client="$(client)" id="_1k29">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.log("I am a console log entry2");
-""")</code>
-      </ClientScriptStep>
-      <CommentStep id="_1k2A">
-        <heading>Navigation</heading>
-      </CommentStep>
-      <SelectionEventStep client="$(client)" component="genericDocument"
-                          detail="goto:https://www.qfs.de/gratis-testen.html"
-                          event="SELECTION" id="_1k2B"/>
-      <DocumentWaiter client="$(client)" component="qfs.de" id="_1k2C"
-                      stoploading="true" timeout="60000"/>
-      <ClientScriptStep client="$(client)" id="_1k2D">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.log("After navigation - I am a console log entry1");
-""")</code>
-      </ClientScriptStep>
-      <ClientScriptStep client="$(client)" id="_1k3D">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.error("err")
-""")
-</code>
-      </ClientScriptStep>
-      <ProcedureCall disabled="true" id="_1k3C"
-                     procedure="Logging.showWebConsoleDotLog"/>
-    </TestCase>
-    <CommentStep id="_1k3Q">
-      <heading>Log messages in the run-log</heading>
-    </CommentStep>
-    <TestCase id="_1k3F" name="Log Chrome logs from console">
-      <comment>@author cacse1</comment>
-      <DependencyReference id="_1k3G" reference="Open Browser">
-        <variable name="connectionMode">Prefer WebDriver</variable>
-        <variable name="url">https://lvz.de</variable>
-      </DependencyReference>
-      <ProcedureCall id="_1k3H" procedure="Logging.showWebConsoleDotLog"/>
-      <ClientScriptStep client="$(client)" id="_1k3I">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.log("I am a console log entry1");
-""")</code>
-      </ClientScriptStep>
-      <ClientScriptStep client="$(client)" id="_1k3J">
-        <code>node = rc.getComponent("genericDocument");
-node.evalJS("""console.log("I am a console log entry2");
-""")</code>
-      </ClientScriptStep>
-      <ClientScriptStep client="$(client)" id="_1k3R" interpreter="groovy"
-                        name="Get Logs. After fetching them the logs are cleared.">
-        <code>import de.qfs.WebDriverConnection
-import org.openqa.selenium.logging.LogType
-import org.openqa.selenium.logging.LogEntry
-
-def wdc = new WebDriverConnection(rc)
-def driver = wdc.getDriver()
-def logEntries = driver.manage().logs().get(LogType.BROWSER)
-logss = logEntries.toJson()
-qf.println(logss);
-rc.logMessage("Browser LogEntries: \n" + logss, true)</code>
-      </ClientScriptStep>
-    </TestCase>
-  </TestSet>
   <PackageRoot id="_3">
-    <Package id="_1k3W" name="Logging"/>
     <Dependency id="_1k3a" name="Open Browser">
       <comment>@author d1
 @version v1
@@ -389,8 +310,6 @@ rc.logMessage("Browser LogEntries: \n" + logss, true)</code>
             <variable name="locale">en</variable>
             <variable name="compatibilitymode">no</variable>
           </ProcedureCall>
-          <ProcedureCall id="_1k3l"
-                         procedure="Logging.enableLoggingChromeDriver"/>
         </BasicSequence>
         <BasicSequence id="_1k3m" name="Open browser window with URL">
           <BrowserClientStarter browser="$(browser)" client="$(client)"
@@ -856,103 +775,6 @@ raise ReturnException(url)</code>
           <code>frame = rc.getComponent("genericDocument").getRootElement()
 
 frame.evalJS("window.open = window.__originalOpen")</code>
-        </ClientScriptStep>
-      </Procedure>
-    </Package>
-    <Package id="_1k1m" name="Logging">
-      <Procedure id="_1k3Z" name="enableLoggingChromeDriver">
-        <ClientScriptStep client="$(client)" id="_1k39" interpreter="groovy">
-          <code>import org.openqa.selenium.logging.LogType
-import org.openqa.selenium.remote.CapabilityType
-import java.util.logging.Level
-import org.openqa.selenium.logging.LoggingPreferences
-
-notifications.addObserver(notifications.CREATING_WEBDRIVER, {
-    def prefs = new LoggingPreferences();
-    prefs.enable(LogType.BROWSER, Level.ALL);
-    it.options.setCapability(CapabilityType.LOGGING_PREFS, prefs)
-})</code>
-        </ClientScriptStep>
-      </Procedure>
-      <Procedure id="_1k1K" name="showWebConsoleDotLog">
-        <comment>Do NOT use in conjuction with the Intercept JS Log Procedure.
-
-Shows in QF-Test Terminal the console.log() message from Web Console. But does not save the messages in the run-log. </comment>
-        <ClientScriptStep client="$(client)" id="_1N">
-          <code>from java.lang import System
-
-#qf-Driver Mode
-System.setProperty("qftest.web.console_output","true")
-#WebDriver Mode
-System.setProperty("qftest.web.webdriver.redirect_js_console","true")</code>
-        </ClientScriptStep>
-      </Procedure>
-      <Procedure id="_1k1i" name="intercept JS console Log">
-        <variable name="nodeQfTestID">genericDocument</variable>
-        <comment>@deprecated</comment>
-        <ClientScriptStep client="$(client)" disabled="true" id="_1k1j">
-          <code>node = rc.getComponent("genericDocument");
-node.evalJS("""
-if (sessionStorage.getItem('intercepted')!='yes'){
-    sessionStorage.setItem('intercepted', 'yes')
-    sessionStorage.setItem("loggedMessages","Start QF-Test-LOG:");
-    var oldLog = console.log;
-    console.log = function(message) {
-        loggedMessages = sessionStorage.getItem("loggedMessages");
-        newMsg = loggedMessages+"\\n"+(new Date() + ":QF-Test-LOG: " + message);
-        sessionStorage.setItem("loggedMessages", newMsg);
-        oldLog.apply(console,arguments);
-    }
-};""")</code>
-        </ClientScriptStep>
-        <ClientScriptStep client="$(client)" id="_1k2-">
-          <code>node = rc.getComponent(rc.lookup("nodeQfTestID"));
-node.evalJS("""
-    window.onload = function(){
-        var oldLog = console.log;        
-        console.log = function(message) {
-            oldMessages = sessionStorage.getItem("loggedMessages")
-            loggedMessages = oldMessages == null ? "START":oldMessages;
-            newMsg = loggedMessages+"\\n"+(new Date() + ":QF-Test-LOG: " + message);
-            sessionStorage.setItem("loggedMessages", newMsg);
-            oldLog.apply(console,arguments);
-    };};
-""")</code>
-        </ClientScriptStep>
-      </Procedure>
-      <Procedure id="_1k1k"
-                 name="transfer JS console log messages to run-log">
-        <variable name="nodeQfTestID">genericDocument</variable>
-        <comment>@deprecated</comment>
-        <ClientScriptStep client="$(client)" disabled="true" id="_1k1l">
-          <code>node = rc.getComponent("genericDocument");
-messages = node.evalJS("""
-sessionStorage.getItem('loggedMessages');
-""")
-
-rc.logMessage("JavaScript console log: \n");
-rc.logMessage(messages);
-
-node.evalJS("""
-sessionStorage.setItem('loggedMessages','');
-""")
-node.evalJS("""
-sessionStorage.setItem('intercepted','no');
-""")</code>
-        </ClientScriptStep>
-        <ClientScriptStep client="$(client)" id="_1k30">
-          <code>node = rc.getComponent(rc.lookup("nodeQfTestID"));
-messages = node.evalJS("""
-sessionStorage.getItem('loggedMessages');
-""")
-
-rc.logMessage("JavaScript console log: \n");
-rc.logMessage(messages);
-
-node.evalJS("""
-sessionStorage.setItem('loggedMessages','');
-""")
-</code>
         </ClientScriptStep>
       </Procedure>
     </Package>
