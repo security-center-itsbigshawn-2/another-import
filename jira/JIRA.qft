@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="root" version="5.2.1">
+  <include>qfs.qft</include>
+  <CommentStep id="_2JFX">
+    <heading>This dependency has an 'Error Handler' and 'Exception handler' so that every problematic test-case is reported to a JIRA Ticket.</heading>
+  </CommentStep>
+  <DependencyReference id="_2JEf" reference="UpdateJIRA"/>
+  <TestSet id="_1" name="Set1">
+    <DependencyReference id="_3D9"
+                         reference="${qftest:dir.version}/demo/carconfig/carconfig_en.qft#dependencies.sutStartedAndReset"/>
+    <TestCase id="_2" name="Case1">
+      <ProcedureCall disabled="true" id="_2JEi"
+                     procedure="qfs.run-log.logError">
+        <variable name="message">Error was found!</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_2JEj" procedure="qfs.run-log.logMessage">
+        <variable name="message">@@@ Message logged in ${qftest:testcase.qname}</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+    </TestCase>
+    <TestCase id="_2JEk" name="Case2">
+      <ProcedureCall disabled="true" id="_2JEl"
+                     procedure="qfs.run-log.logError">
+        <variable name="message">Error was found!</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_2JEm" procedure="qfs.run-log.logMessage">
+        <variable name="message">@@@ Message logged in ${qftest:testcase.qname}</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+    </TestCase>
+    <TestCase id="_2JEn" name="Case3">
+      <ProcedureCall disabled="true" id="_2JEo"
+                     procedure="qfs.run-log.logError">
+        <variable name="message">Error was found!</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_2JEp" procedure="qfs.run-log.logMessage">
+        <variable name="message">@@@ Message logged in ${qftest:testcase.qname}</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+    </TestCase>
+    <TestCase id="_2JEq" name="Case4">
+      <ProcedureCall disabled="true" id="_2JEr"
+                     procedure="qfs.run-log.logError">
+        <variable name="message">Error was found!</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_2JEs" procedure="qfs.run-log.logMessage">
+        <variable name="message">@@@ Message logged in ${qftest:testcase.qname}</variable>
+        <variable name="withScreenshots">true</variable>
+        <variable name="report">true</variable>
+      </ProcedureCall>
+    </TestCase>
+  </TestSet>
+  <PackageRoot id="_3">
+    <CommentStep id="_2JFU">
+      <heading>Make sure to set $(baseurl) before using the procedures. http://host:port/context/rest/api-name/api-version/</heading>
+    </CommentStep>
+    <CommentStep id="_2JFV">
+      <heading>Salt your password, see the 'Input' in the Extras section</heading>
+    </CommentStep>
+    <CommentStep id="_2JFW">
+      <heading>Sometimes the transition IDs are not visible to all JIRA users. You need special rights for this. Everyone above Project-Admin has them.</heading>
+    </CommentStep>
+    <Package id="_1lxW" name="Jira">
+      <Procedure id="_1lxX" name="getState">
+        <variable name="project"/>
+        <variable name="ticket"/>
+        <variable name="jiraUser">USER</variable>
+        <variable name="jiraPassword">qftest:decrypt(B34DEDE1728F98CF5B6989DE6730D586)</variable>
+        <comment>Gets the state of a jira ticket.
+
+@param 	jiraPassword 	
+	The password can be encrypted - for this select an input step for a text input (see Extra sequences), input your password there, right click and select "encrypt password". Then copy the content ("qftest:decrypt(...)") and use as password parameter.
+
+ticket and </comment>
+        <SetGlobalStep id="_2JFR" varname="url">
+          <default>http://(baseurl)/rest/api/2/issue/$(project)-$(ticket)</default>
+        </SetGlobalStep>
+        <ServerScriptStep id="_2JER" name="Decrypt Jira Password">
+          <code>from de.qfs.apps.qftest.shared import Util
+
+pwd = Util.maybeDecrypt(rc.lookup("jiraPassword"), Options.getString(Options.OPT_PLAY_PASSWORD_SALT))
+rc.setLocal("jiraPassword", pwd)</code>
+        </ServerScriptStep>
+        <ServerScriptStep id="_2JEQ"
+                          name="Base64 encode the username and password into variable &#34;basicAuth&#34;">
+          <code>user = rc.lookup("jiraUser")
+pwd = rc.lookup("jiraPassword")
+
+import base64
+rc.setGlobal("basicAuth", base64.b64encode("{}:{}".format(user, pwd)))</code>
+        </ServerScriptStep>
+        <RequestStep id="_1lxY" local="true" requestmethod="GET"
+                     responsevar="data" statuscodevar="httpstatus"
+                     url="$(url)?fields=status,summary">
+          <headers header="Content-Type">application/json</headers>
+          <headers header="Authorization">Basic $(basicAuth)</headers>
+          <headers header="Accept">application/json</headers>
+        </RequestStep>
+        <IfSequence id="_1lxZ" test="not $(httpstatus) is 200">
+          <ThrowStep id="_1lxi"
+                     throwmessage="Could not query jira ticket $(project)-$(ticket), error $(httpstatus)"/>
+        </IfSequence>
+        <ServerScriptStep id="_1lxb" name="Get ticket state">
+          <code>from de.qfs.lib.json import Json
+
+data = Json.parse(rc.lookup("data")).asObject().getObject('fields')
+
+rc.logMessage("Ticket-Title: " + data.getString("summary","?"))
+
+state = data.getObject('status').getString("name","?")
+rc.logMessage("Ticket-State: " + state)
+
+raise ReturnException(state)</code>
+        </ServerScriptStep>
+      </Procedure>
+      <Procedure id="_2JEV" name="setState">
+        <variable name="state"/>
+        <variable name="comment"/>
+        <variable name="project"/>
+        <variable name="ticket"/>
+        <variable name="jiraUser"/>
+        <variable name="jiraPassword"/>
+        <comment>Gets the state of a jira ticket.
+
+@param 	jiraUser
+	the  username
+
+@param 	jiraPassword 	
+	The password can be encrypted - for this select an input step for a text input (see Extra sequences), input your password there, right click and select "encrypt password". Then copy the content ("qftest:decrypt(...)") and use as password parameter.
+
+@param	project
+	JIRA Project
+
+@param	ticket
+	ticket number w/o the Porject Suffix
+
+@param	state
+	see the JIRA REST Api docu how to obtain the transtion IDs
+
+@param	comment
+	Add a comment for the transition</comment>
+        <SetGlobalStep id="_2JFT" varname="url">
+          <default>http://(baseurl)/rest/api/2/issue/$(project)-$(ticket)</default>
+        </SetGlobalStep>
+        <ServerScriptStep id="_2JEW" name="Decrypt Jira Password">
+          <code>from de.qfs.apps.qftest.shared import Util
+
+pwd = Util.maybeDecrypt(rc.lookup("jiraPassword"), Options.getString(Options.OPT_PLAY_PASSWORD_SALT))
+rc.setLocal("jiraPassword", pwd)</code>
+        </ServerScriptStep>
+        <ServerScriptStep id="_2JEX"
+                          name="Base64 encode the username and password into variable &#34;basicAuth&#34;">
+          <code>user = rc.lookup("jiraUser")
+pwd = rc.lookup("jiraPassword")
+
+import base64
+rc.setGlobal("basicAuth", base64.b64encode("{}:{}".format(user, pwd)))</code>
+        </ServerScriptStep>
+        <RequestStep id="_2JEY" local="true"
+                     payload="{&#34;transition&#34;:{&#10;      &#34;id&#34;:&#34;$(state)&#34;&#10;   },&#10;   &#34;update&#34;:{&#10;      &#34;comment&#34;:[&#10;         {&#10;            &#34;add&#34;:{&#10;               &#34;body&#34;:&#34;$(comment)&#34;&#10;            }&#10;         }&#10;      ]&#10;   }&#10;}"
+                     requestmethod="POST" responsevar="data"
+                     statuscodevar="httpstatus" url="$(url)/transitions">
+          <headers header="Content-Type">application/json</headers>
+          <headers header="Authorization">Basic $(basicAuth)</headers>
+          <headers header="Accept">application/json</headers>
+        </RequestStep>
+      </Procedure>
+      <Procedure id="_2JFB" name="attachTextFileToTicket">
+        <variable name="project"/>
+        <variable name="hostname"/>
+        <variable name="filePath"/>
+        <variable name="ticket"/>
+        <variable name="username"/>
+        <variable name="password"/>
+        <comment>Attach a text file to a jira ticket. Actual issue is build from the 'project' and 'ticket' parameters.
+
+Parameters should be self explanatory.</comment>
+        <SetGlobalStep id="_2JFN" varname="url">
+          <default>http://$(username):$(password)@$(baseurl)/rest/api/2/issue/$(project)-$(ticket)/attachments</default>
+        </SetGlobalStep>
+        <ServerScriptStep id="_9" interpreter="groovy" name="Read file">
+          <code>def file = new File(rc.lookup("filePath"))
+filename = file.getName()
+rc.setLocal("filename",filename)
+
+
+def payload = "--------------------------afb19f4aeefb356c\r\n"+
+"Content-Disposition: form-data; name=\"file\";filename=\"${filename}\"\r\n"+
+"\r\n"+
+file.text+"\r\n"+
+"--------------------------afb19f4aeefb356c--\r\n"
+
+rc.setLocal("payload",payload)</code>
+        </ServerScriptStep>
+        <RequestStep id="_7" local="true" logresponse="true"
+                     payload="$[rc.lookup(&#34;payload&#34;,expand=False)]"
+                     requestmethod="POST" statuscodevar="httpstatus"
+                     url="$(url)">
+          <headers header="Content-Type">multipart/form-data;boundary=------------------------afb19f4aeefb356c</headers>
+          <headers header="Accept">*/*</headers>
+          <headers header="X-Atlassian-Token">nocheck</headers>
+        </RequestStep>
+        <IfSequence id="_2JFF" test="not $(httpstatus) is 200">
+          <ThrowStep id="_2JFG"
+                     throwmessage="Could not attach the file $(filePath) to jira ticket $(project)-$(ticket), error $(httpstatus)"/>
+        </IfSequence>
+      </Procedure>
+      <Procedure id="_2JFK" name="attachAnyFileToTicket">
+        <variable name="project"/>
+        <variable name="hostname"/>
+        <variable name="filePath"/>
+        <variable name="ticket"/>
+        <variable name="username"/>
+        <variable name="password"/>
+        <comment>Attach any filetype to a jira ticket. Actual issue is build from the 'project' and 'ticket' parameters.
+
+Parameters should be self explanatory.</comment>
+        <SetGlobalStep id="_2JFQ" varname="url">
+          <default>http://$(username):$(password)@$(baseurl)/rest/api/2/issue/$(project)-$(ticket)/attachments</default>
+        </SetGlobalStep>
+        <ServerScriptStep id="_2JFL" interpreter="groovy">
+          <code>import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import sun.misc.BASE64Encoder;
+
+
+HttpURLConnection conn = null;
+DataOutputStream dos = null;
+String lineEnd = "\r\n";
+String twoHyphens = "--";
+String boundary = "------------------------afb19f4aeefb356c";
+int serverResponseCode;
+
+int bytesRead, bytesAvailable, bufferSize;
+byte[] buffer;
+int maxBufferSize = 1 * 1024 * 1024;
+File sourceFile = new File(rc.lookup("filePath"));
+enableLogging = false;
+void logMe(String message){
+    if (enableLogging){
+        qf.println(message)
+    }
+}
+logMe("Uploading: sourcefileURI, " + rc.lookup("filePath"));
+
+if (!sourceFile.isFile()) {
+    logMe("Source File not exist :" + fileName); //FullPath);
+    return; //RETURN #1
+} else {
+    try {
+        logMe("UPLOADING FILE");
+        FileInputStream fileInputStream = new FileInputStream(sourceFile);
+        URL url = new URL(rc.lookup('url'));
+        logMe("UL URL: " + url.toString());
+
+        // Open a HTTP  connection to  the URL
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setDoInput(true); // Allow Inputs
+        conn.setDoOutput(true); // Allow Outputs
+        conn.setUseCaches(false); // Don't use a Cached Copy            s
+        conn.setRequestMethod("POST");
+        // conn.setRequestProperty("Connection", "Keep-Alive");
+        conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+        conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+        conn.setRequestProperty("file", sourceFile.getName());
+        conn.setRequestProperty("Cache-Control", "no-cache");
+        conn.setRequestProperty("Pragma", "no-cache");
+        conn.setRequestProperty("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2");
+        conn.setRequestProperty("X-Atlassian-Token", "nocheck");
+        conn.setRequestProperty("Authorization", "Basic " + new BASE64Encoder().encode((rc.getStr("username")+":"+rc.getStr("password")).getBytes("UTF-8")));
+
+        //so on and so forth...
+        //conn.setRequestProperty("param", "value");
+        conn.setRequestProperty("connection", "close");
+        dos = new DataOutputStream(conn.getOutputStream());
+        dos.writeBytes(twoHyphens + boundary + lineEnd);
+        dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\"" + sourceFile.getName() + "\"" + lineEnd);
+        dos.writeBytes(lineEnd);
+
+        // create a buffer of maximum size
+        bytesAvailable = fileInputStream.available();
+        bufferSize = Math.min(bytesAvailable, maxBufferSize);
+        buffer = new byte[bufferSize];
+        // read file and write it into form...
+        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+        while (bytesRead &gt; 0) {
+            dos.write(buffer, 0, bufferSize);
+            bytesAvailable = fileInputStream.available();
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+            logMe("-&gt;");
+        }
+        logMe("-&gt;-&gt;");
+        // send multipart form data necesssary after file data...
+        dos.writeBytes(lineEnd);
+        dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+        conn.connect();
+        logMe("-&gt;-&gt;-&gt;");
+        // Responses from the server (code and message)
+        serverResponseCode = conn.getResponseCode();
+        logMe("-&gt;-&gt;-&gt;-&gt;");
+        logMe("HTTP Response is : " + serverResponseCode);
+        // ------------------ read the SERVER RESPONSE
+        DataInputStream inStream;
+        String str = "";
+        String response = "";
+        try {
+            logMe("-&gt;-&gt;-&gt;-&gt;-&gt;-&gt;");
+            inStream = new DataInputStream(conn.getInputStream());
+
+            while ((str = inStream.readLine()) != null) {
+                logMe("SOF Server Response" + str);
+                response = str;
+            }
+            inStream.close();
+        } catch (IOException ioex) {
+            logMe("SOF error: " + ioex.getMessage());
+        }
+        conn.disconnect();
+        conn = null;
+        //close the streams //
+        fileInputStream.close();
+        dos.flush();
+        dos.close();
+
+        if (serverResponseCode == 201) {
+            logMe("*** SERVER RESPONSE: 201" + response);
+        } //END IF Response code 201
+        // conn.disconnect();
+    } //END TRY - FILE READ
+    catch (MalformedURLException ex) {
+        ex.printStackTrace();
+        logMe("UL error: " + ex.getMessage());
+    } //CATCH - URL Exception
+    catch (Exception e) {
+        e.printStackTrace();
+        logMe("Exception : " + e.getMessage());
+    }
+
+} //END ELSE, if file exists.</code>
+        </ServerScriptStep>
+      </Procedure>
+    </Package>
+    <Dependency id="_2JES" name="UpdateJIRA">
+      <ErrorHandler id="_2JET" name="Error">
+        <ProcedureCall id="_2JEg" procedure="Jira.setState">
+          <variable name="state"/>
+          <variable name="comment">${qftest:testcase.name} failed!</variable>
+          <variable name="project"/>
+          <variable name="ticket"/>
+          <variable name="jiraUser">USER</variable>
+          <variable name="jiraPassword"/>
+        </ProcedureCall>
+      </ErrorHandler>
+      <CatchSequence exception="TestException" id="_2JEU" maxerror="0"
+                     name="Exception">
+        <ProcedureCall id="_2JEh" procedure="Jira.setState">
+          <variable name="state"/>
+          <variable name="comment">${qftest:testcase.name} failed!</variable>
+          <variable name="project"/>
+          <variable name="ticket"/>
+          <variable name="jiraUser">USER</variable>
+          <variable name="jiraPassword"/>
+        </ProcedureCall>
+      </CatchSequence>
+    </Dependency>
+  </PackageRoot>
+  <ExtraSequence id="_4">
+    <TextInputStep client="$(client)" component="genericDocument" id="_2JEc">
+      <text>Enter your password here and then right click to encrypt it. Then use it in the procedure. In this way you avoid exposing the password.</text>
+    </TextInputStep>
+  </ExtraSequence>
+  <WindowList id="_5"/>
+</RootStep>

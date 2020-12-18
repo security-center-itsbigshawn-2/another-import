@@ -1,0 +1,1281 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="root" version="5.2.1">
+  <include>qfs.qft</include>
+  <reference>qfs.qft</reference>
+  <variable name="downloadSubFolder">downloads</variable>
+  <TestSet id="_1j-d" name="Download">
+    <DependencyReference id="_1j-m" reference="Options and Startup"/>
+    <TestCase id="_1" name="Download automatically - Firefox">
+      <variable name="browser">firefox</variable>
+      <MouseEventStep clicks="1" client="$(client)" component="linkDownload"
+                      event="MOUSE_MPRC" id="_r" modifiers="16"/>
+      <CommentStep id="_u">
+        <heading>You have to wait for the download to finish.</heading>
+        <comment>Maybe create a script to pool the file system.</comment>
+      </CommentStep>
+      <CommentStep id="_1m" postdelay="2000">
+        <heading>For now 2000 ms harcoded delay. The file is rather small.</heading>
+      </CommentStep>
+      <ProcedureCall id="_s" procedure="qfs.shellutils.exists">
+        <variable name="file">$(downloadFolder)/7z1900.exe</variable>
+      </ProcedureCall>
+    </TestCase>
+    <TestCase id="_w" name="Download - Chrome">
+      <variable name="browser">chrome</variable>
+      <SetGlobalStep id="_1j-5" varname="file">
+        <default>$(downloadFolder)/7zip.chrome.exe</default>
+      </SetGlobalStep>
+      <ProcedureCall id="_1q" procedure="Chrome.download">
+        <variable name="componentToClick">linkDownload</variable>
+        <variable name="filename">$(file)</variable>
+      </ProcedureCall>
+      <CommentStep id="_1j+x">
+        <heading>You have to wait for the download to finish.</heading>
+        <comment>Maybe create a script to pool the file system.</comment>
+      </CommentStep>
+      <CommentStep id="_1j+y" postdelay="2000">
+        <heading>For now 2000 ms harcoded delay. The file is rather small.</heading>
+      </CommentStep>
+      <ProcedureCall id="_1j+z" procedure="qfs.shellutils.exists">
+        <variable name="file">$(file)</variable>
+      </ProcedureCall>
+    </TestCase>
+    <TestCase id="_1j+J" name="Download - Edge">
+      <variable name="browser">edge</variable>
+      <SetGlobalStep id="_1j-c" varname="file">
+        <default>$(downloadFolder)/7zip.edge.exe</default>
+      </SetGlobalStep>
+      <ProcedureCall id="_1j-b" procedure="EDGE.download">
+        <variable name="componentToClick">linkDownload</variable>
+        <variable name="filename">$(file)</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_1j-k" procedure="qfs.shellutils.exists">
+        <variable name="file">$(file)</variable>
+      </ProcedureCall>
+    </TestCase>
+  </TestSet>
+  <TestSet id="_1k0Q" name="Firefox - Disable Notifications">
+    <comment>Manual:
+Type in the address bar about:config (press Enter) (promise to be careful, if asked)
+Type in the search bar and look for the preference :
+dom.webnotifications.enabled</comment>
+    <TestCase id="_1k0z" name="show it works">
+      <SetupSequence id="_1k0+"
+                     name="https://web-push-book.gauntface.com/demos/notification-examples/">
+        <BasicSequence id="_1k0-" name="Globale Variablen setzen">
+          <SetGlobalStep id="_1k10" varname="web-push-book">
+            <default>numbers</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k11" varname="browser">
+            <default>firefox</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k12" varname="browserdir"/>
+        </BasicSequence>
+        <ClientWaiter client="$(client)" id="_1k13" local="true" raise="false"
+                      resvarname="isSUTRunning" timeout="1">
+          <comment>Dieser Knoten prüft, ob das SUT bereits läuft. Das Ergebnis der Prüfung wird in der Variable isSUTRunning gespeichert. Diese Variable enthält entweder true, wenn das SUT läuft oder false, wenn das SUT nicht läuft. Im folgenden IF-Knoten wird diese Variable ausgewertet.</comment>
+        </ClientWaiter>
+        <IfSequence id="_1k14" name="SUT starten, wenn notwendig"
+                    test="not $(isSUTRunning)">
+          <BasicSequence id="_1k15" name="Web-Engine starten">
+            <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                  connectionmode="WebDriver only"
+                                  executable="${qftest:java}" id="_1k16"
+                                  mozhome="$(browserdir)" openwindow="false">
+              <extraarg/>
+            </BrowserClientStarter>
+            <ClientWaiter client="$(client)" id="_1k17"/>
+          </BasicSequence>
+          <BasicSequence id="_1k18" name="Einstellungen für Browser setzen">
+            <ProcedureCall id="_1k1J"
+                           procedure="Firefox.disableWebNotifications"/>
+            <ProcedureCall id="_1k19"
+                           procedure="qfs.qft#qfs.web.browser.settings.doStartupSettings">
+              <variable name="client">$(client)</variable>
+              <variable name="browser">$(browser)</variable>
+              <variable name="mozhome">$(browserdir)</variable>
+              <variable name="emptyCache">true</variable>
+              <variable name="enableCookies">true</variable>
+              <variable name="deleteCookies">true</variable>
+              <variable name="locale">de</variable>
+              <variable name="enableProxy">false</variable>
+              <variable name="proxyAddress"/>
+              <variable name="proxyPort"/>
+              <variable name="proxyAutoconfigurl"/>
+              <variable name="enableProxyBypass">false</variable>
+              <variable name="proxyBypass"/>
+              <variable name="mozprofile"/>
+              <variable name="compatibilitymode">no</variable>
+            </ProcedureCall>
+          </BasicSequence>
+          <BasicSequence id="_1k1A" name="Browser-Fenster öffnen">
+            <BrowserClientStarter browser="${default:browser:chrome}"
+                                  client="$(client)"
+                                  executable="${qftest:java}" id="_1k1B"
+                                  openwindow="true"
+                                  url="https://web-push-book.gauntface.com/demos/notification-examples/"/>
+            <DocumentWaiter client="$(client)" component="genericDocument"
+                            id="_1k1C" timeout="60000"/>
+          </BasicSequence>
+          <BasicSequence id="_1k1D" name="CustomWebResolver installieren">
+            <ProcedureCall id="_1k1E"
+                           procedure="qfs.qft#qfs.web.ajax.installCustomWebResolver">
+              <variable name="client">$(client)</variable>
+              <variable name="resolver">autodetect</variable>
+              <variable name="version"/>
+              <variable name="genericClasses"/>
+              <variable name="attributesToGenericClasses"/>
+              <variable name="tagsToGenericClasses"/>
+              <variable name="ignoreTags">DIV,SPAN,</variable>
+              <variable name="ignoreByAttributes"/>
+              <variable name="autoIdPatterns"/>
+              <variable name="customIdAttributes"/>
+              <variable name="interestingByAttributes"/>
+              <variable name="attributesToQftFeature"/>
+              <variable name="documentJS"/>
+              <variable name="auto_angular_version">1</variable>
+              <variable name="auto_extjs_version">3</variable>
+              <variable name="auto_gwt_version">2</variable>
+              <variable name="auto_icefaces_version">1</variable>
+              <variable name="auto_jqueryui_version">1</variable>
+              <variable name="auto_jeasyui_version">1</variable>
+              <variable name="auto_kendoui_version">1</variable>
+              <variable name="auto_primefaces_version">2</variable>
+              <variable name="auto_qooxdoo_version">2</variable>
+              <variable name="auto_rap_version">3</variable>
+              <variable name="auto_richfaces_version">3</variable>
+              <variable name="auto_smartgwt_version">1</variable>
+              <variable name="auto_vaadin_version">2</variable>
+              <variable name="auto_zk_version">1</variable>
+              <comment>Dieser Aufruf installiert einen CustomWebResolver für AJAX Toolkits.
+Ein CustomWebResolver erlaubt es Ihnen die Spezifika Ihrer Webanwendung nach generischen Klassen von QF-Test zu übersetzen. Dieser Ansatz verbessert die Komponentenerkennung und erweitert die angebotenen Checkvarianten. Ihre Testfälle werden dadurch stabiler, robuster und lesbarer.
+Der wichtigste Parameter ist 'genericClasses'. Damit können Sie Werte des 'class' Attributes einer Komponente, z.B. 'btn', in einen QF-Test Button übersetzen. Dies geschieht mittels Angabe von btn=Button. Weitere Übersetzungen können sie kommasepariert angeben.
+Sie finden weitere Informationen im Kommentar der Prozedur selbst, hierfür einfach doppelt auf den Prozeduraufruf klicken.
+Im Handbuch finden Sie ein vollständiges Beispiel.</comment>
+            </ProcedureCall>
+          </BasicSequence>
+        </IfSequence>
+      </SetupSequence>
+      <ProcedureCall id="_1k1F" procedure="qfs.run-log.logMessage">
+        <variable name="message">dummy error</variable>
+        <variable name="dontcompactify">false</variable>
+        <variable name="report">false</variable>
+      </ProcedureCall>
+    </TestCase>
+  </TestSet>
+  <TestSet id="_1k0R" name="Copy Profile Firefox">
+    <SetupSequence id="_N" name="Copy user.js and pref.js">
+      <ProcedureCall id="_O" procedure="qfs.shellutils.copy">
+        <variable name="source">_path_to_my\user.js</variable>
+        <variable name="target">${qftest:dir.user}/mozProfile</variable>
+      </ProcedureCall>
+      <ProcedureCall id="_Q" procedure="qfs.shellutils.copy">
+        <variable name="source">_path_to_my\prefs.js</variable>
+        <variable name="target">${qftest:dir.user}/mozProfile</variable>
+      </ProcedureCall>
+    </SetupSequence>
+    <TestCase id="_2" name="show it works">
+      <SetupSequence id="_6" name="https://qfs.de">
+        <BasicSequence id="_1k0S" name="Globale Variablen setzen">
+          <SetGlobalStep id="_1k0T" varname="client">
+            <default>numbers</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k0U" varname="browser">
+            <default>firefox</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k0V" varname="browserdir"/>
+        </BasicSequence>
+        <ClientWaiter client="$(client)" id="_1k0W" local="true" raise="false"
+                      resvarname="isSUTRunning" timeout="1">
+          <comment>Dieser Knoten prüft, ob das SUT bereits läuft. Das Ergebnis der Prüfung wird in der Variable isSUTRunning gespeichert. Diese Variable enthält entweder true, wenn das SUT läuft oder false, wenn das SUT nicht läuft. Im folgenden IF-Knoten wird diese Variable ausgewertet.</comment>
+        </ClientWaiter>
+        <IfSequence id="_1k0X" name="SUT starten, wenn notwendig"
+                    test="not $(isSUTRunning)">
+          <BasicSequence id="_1k0Y" name="Web-Engine starten">
+            <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                  connectionmode="WebDriver only"
+                                  executable="${qftest:java}" id="_1k0Z"
+                                  mozhome="$(browserdir)" openwindow="false">
+              <extraarg/>
+            </BrowserClientStarter>
+            <ClientWaiter client="$(client)" id="_1k0a"/>
+          </BasicSequence>
+          <BasicSequence id="_1k0b" name="Einstellungen für Browser setzen">
+            <ProcedureCall id="_1k0c"
+                           procedure="qfs.qft#qfs.web.browser.settings.doStartupSettings">
+              <variable name="client">$(client)</variable>
+              <variable name="browser">$(browser)</variable>
+              <variable name="mozhome">$(browserdir)</variable>
+              <variable name="emptyCache">true</variable>
+              <variable name="enableCookies">true</variable>
+              <variable name="deleteCookies">true</variable>
+              <variable name="locale">de</variable>
+              <variable name="enableProxy">false</variable>
+              <variable name="proxyAddress"/>
+              <variable name="proxyPort"/>
+              <variable name="proxyAutoconfigurl"/>
+              <variable name="enableProxyBypass">false</variable>
+              <variable name="proxyBypass"/>
+              <variable name="mozprofile"/>
+              <variable name="compatibilitymode">no</variable>
+            </ProcedureCall>
+          </BasicSequence>
+          <BasicSequence id="_1k0d" name="Browser-Fenster öffnen">
+            <BrowserClientStarter browser="${default:browser:chrome}"
+                                  client="$(client)"
+                                  executable="${qftest:java}" id="_1k0e"
+                                  openwindow="true" url="https://qfs.de"/>
+            <DocumentWaiter client="$(client)" component="genericDocument"
+                            id="_1k0f" timeout="60000"/>
+          </BasicSequence>
+          <BasicSequence id="_1k0g" name="CustomWebResolver installieren">
+            <ProcedureCall id="_1k0h"
+                           procedure="qfs.qft#qfs.web.ajax.installCustomWebResolver">
+              <variable name="client">$(client)</variable>
+              <variable name="resolver">autodetect</variable>
+              <variable name="version"/>
+              <variable name="genericClasses"/>
+              <variable name="attributesToGenericClasses"/>
+              <variable name="tagsToGenericClasses"/>
+              <variable name="ignoreTags">DIV,SPAN,</variable>
+              <variable name="ignoreByAttributes"/>
+              <variable name="autoIdPatterns"/>
+              <variable name="customIdAttributes"/>
+              <variable name="interestingByAttributes"/>
+              <variable name="attributesToQftFeature"/>
+              <variable name="documentJS"/>
+              <variable name="auto_angular_version">1</variable>
+              <variable name="auto_extjs_version">3</variable>
+              <variable name="auto_gwt_version">2</variable>
+              <variable name="auto_icefaces_version">1</variable>
+              <variable name="auto_jqueryui_version">1</variable>
+              <variable name="auto_jeasyui_version">1</variable>
+              <variable name="auto_kendoui_version">1</variable>
+              <variable name="auto_primefaces_version">2</variable>
+              <variable name="auto_qooxdoo_version">2</variable>
+              <variable name="auto_rap_version">3</variable>
+              <variable name="auto_richfaces_version">3</variable>
+              <variable name="auto_smartgwt_version">1</variable>
+              <variable name="auto_vaadin_version">2</variable>
+              <variable name="auto_zk_version">1</variable>
+              <comment>Dieser Aufruf installiert einen CustomWebResolver für AJAX Toolkits.
+Ein CustomWebResolver erlaubt es Ihnen die Spezifika Ihrer Webanwendung nach generischen Klassen von QF-Test zu übersetzen. Dieser Ansatz verbessert die Komponentenerkennung und erweitert die angebotenen Checkvarianten. Ihre Testfälle werden dadurch stabiler, robuster und lesbarer.
+Der wichtigste Parameter ist 'genericClasses'. Damit können Sie Werte des 'class' Attributes einer Komponente, z.B. 'btn', in einen QF-Test Button übersetzen. Dies geschieht mittels Angabe von btn=Button. Weitere Übersetzungen können sie kommasepariert angeben.
+Sie finden weitere Informationen im Kommentar der Prozedur selbst, hierfür einfach doppelt auf den Prozeduraufruf klicken.
+Im Handbuch finden Sie ein vollständiges Beispiel.</comment>
+            </ProcedureCall>
+          </BasicSequence>
+        </IfSequence>
+      </SetupSequence>
+      <ProcedureCall id="_R" procedure="qfs.run-log.logMessage">
+        <variable name="message">dummy error</variable>
+        <variable name="dontcompactify">false</variable>
+        <variable name="report">false</variable>
+      </ProcedureCall>
+    </TestCase>
+  </TestSet>
+  <TestSet id="_1k1L" name="Logging and output of console_DOT_log()">
+    <comment>@author pv</comment>
+    <CommentStep id="_1k3E">
+      <heading>This will not log the messages just print them out in the terminal</heading>
+    </CommentStep>
+    <TestCase id="_1k23" name="Show console_DOT_log() in the Terminal">
+      <comment>@author cacse1</comment>
+      <DependencyReference id="_1k24" reference="Open Browser"/>
+      <ComponentWaiter client="$(client)" component="linkAccept" id="_1k2+"
+                       resvarname="accept" timeout="1000"/>
+      <ProcedureCall id="_1k2G" procedure="Logging.showWebConsoleDotLog"/>
+      <ClientScriptStep client="$(client)" id="_1k28">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.log("I am a console log entry1");
+""")</code>
+      </ClientScriptStep>
+      <ClientScriptStep client="$(client)" id="_1k29">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.log("I am a console log entry2");
+""")</code>
+      </ClientScriptStep>
+      <CommentStep id="_1k2A">
+        <heading>Navigation</heading>
+      </CommentStep>
+      <SelectionEventStep client="$(client)" component="genericDocument"
+                          detail="goto:https://www.qfs.de/gratis-testen.html"
+                          event="SELECTION" id="_1k2B"/>
+      <DocumentWaiter client="$(client)" component="qfs.de" id="_1k2C"
+                      stoploading="true" timeout="60000"/>
+      <ClientScriptStep client="$(client)" id="_1k2D">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.log("After navigation - I am a console log entry1");
+""")</code>
+      </ClientScriptStep>
+      <ClientScriptStep client="$(client)" id="_1k3D">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.error("err")
+""")
+</code>
+      </ClientScriptStep>
+      <ProcedureCall disabled="true" id="_1k3C"
+                     procedure="Logging.showWebConsoleDotLog"/>
+    </TestCase>
+    <CommentStep id="_1k3Q">
+      <heading>Log messages in the run-log</heading>
+    </CommentStep>
+    <TestCase id="_1k3F" name="Log Chrome logs from console">
+      <comment>@author cacse1</comment>
+      <DependencyReference id="_1k3G" reference="Open Browser">
+        <variable name="connectionMode">Prefer WebDriver</variable>
+        <variable name="url">https://lvz.de</variable>
+      </DependencyReference>
+      <ProcedureCall id="_1k3H" procedure="Logging.showWebConsoleDotLog"/>
+      <ClientScriptStep client="$(client)" id="_1k3I">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.log("I am a console log entry1");
+""")</code>
+      </ClientScriptStep>
+      <ClientScriptStep client="$(client)" id="_1k3J">
+        <code>node = rc.getComponent("genericDocument");
+node.evalJS("""console.log("I am a console log entry2");
+""")</code>
+      </ClientScriptStep>
+      <ClientScriptStep client="$(client)" id="_1k3R" interpreter="groovy"
+                        name="Get Logs. After fetching them the logs are cleared.">
+        <code>import de.qfs.WebDriverConnection
+import org.openqa.selenium.logging.LogType
+import org.openqa.selenium.logging.LogEntry
+
+def wdc = new WebDriverConnection(rc)
+def driver = wdc.getDriver()
+def logEntries = driver.manage().logs().get(LogType.BROWSER)
+logss = logEntries.toJson()
+qf.println(logss);
+rc.logMessage("Browser LogEntries: \n" + logss, true)</code>
+      </ClientScriptStep>
+    </TestCase>
+  </TestSet>
+  <PackageRoot id="_3">
+    <Package id="_1k3W" name="Logging"/>
+    <Dependency id="_1k3a" name="Open Browser">
+      <comment>@author d1
+@version v1
+</comment>
+      <SetupSequence id="_1k3b" name="Open Browser">
+        <comment>@author setup1</comment>
+        <BasicSequence id="_1k3c" name="Set global variables">
+          <SetGlobalStep id="_1k3d" varname="client">
+            <default>web</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k3e" varname="browser">
+            <default>chrome</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k3f" varname="mozhome"/>
+        </BasicSequence>
+        <BasicSequence id="_1k3g" name="Start browser without window">
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                connectionmode="${default:connectionMode:&#34;Prefer QF-Driver&#34;}"
+                                executable="${qftest:java}" id="_1k3h"
+                                mozhome="$(mozhome)" openwindow="false"/>
+          <ClientWaiter client="$(client)" id="_1k3i"/>
+        </BasicSequence>
+        <BasicSequence id="_1k3j" name="Perform browser settings">
+          <ProcedureCall id="_1k3k"
+                         procedure="qfs.qft#qfs.web.browser.settings.doStartupSettings">
+            <variable name="client">$(client)</variable>
+            <variable name="browser">$(browser)</variable>
+            <variable name="mozhome">$(mozhome)</variable>
+            <variable name="emptyCache">true</variable>
+            <variable name="enableCookies">true</variable>
+            <variable name="deleteCookies">true</variable>
+            <variable name="locale">en</variable>
+            <variable name="compatibilitymode">no</variable>
+          </ProcedureCall>
+          <ProcedureCall id="_1k3l"
+                         procedure="Logging.enableLoggingChromeDriver"/>
+        </BasicSequence>
+        <BasicSequence id="_1k3m" name="Open browser window with URL">
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                executable="${qftest:java}" id="_1k3n"
+                                openwindow="true"
+                                url="${default:url:&#34;https://www.qfs.de/&#34;}"/>
+          <DocumentWaiter client="$(client)" component="genericDocument"
+                          id="_1k3o" timeout="60000"/>
+        </BasicSequence>
+      </SetupSequence>
+    </Dependency>
+    <Dependency forcedcleanup="true" forcedexec="true" id="_1j-Q"
+                name="Options and Startup">
+      <discriminator>browser</discriminator>
+      <SetupSequence id="_1j-R">
+        <ProcedureCall id="_1j+v" procedure="createDownloadFolder"
+                       retvarname="downloadFolder">
+          <variable name="downloadTarget">$(downloadSubFolder)</variable>
+        </ProcedureCall>
+        <BasicSequence id="_7" name="Globale Variablen setzen">
+          <SetGlobalStep id="_8" varname="client">
+            <default>$(browser)</default>
+          </SetGlobalStep>
+          <SetGlobalStep description="The browser is set at Testcase level."
+                         id="_9" varname="browser">
+            <default>$(browser)</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_A" varname="browserdir"/>
+        </BasicSequence>
+        <ClientWaiter client="$(client)" id="_B" local="true" raise="false"
+                      resvarname="isSUTRunning" timeout="1">
+          <comment>Dieser Knoten prüft, ob das SUT bereits läuft. Das Ergebnis der Prüfung wird in der Variable isSUTRunning gespeichert. Diese Variable enthält entweder true, wenn das SUT läuft oder false, wenn das SUT nicht läuft. Im folgenden IF-Knoten wird diese Variable ausgewertet.</comment>
+        </ClientWaiter>
+        <IfSequence id="_C" name="SUT starten, wenn notwendig"
+                    test="not $(isSUTRunning)">
+          <BasicSequence id="_D" name="Web-Engine starten">
+            <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                  connectionmode="WebDriver only"
+                                  executable="${qftest:java}" id="_E"
+                                  mozhome="$(browserdir)" openwindow="false"/>
+            <ClientWaiter client="$(client)" id="_F"/>
+          </BasicSequence>
+          <BasicSequence id="_G" name="Einstellungen für Browser setzen">
+            <IfSequence id="_1j-T"
+                        test="rc.lookup(&#34;browser&#34;)==&#34;chrome&#34;">
+              <ProcedureCall id="_1j-X" procedure="Chrome.downloadOptions"/>
+              <ElseifSequence id="_1j-U"
+                              test="rc.lookup(&#34;browser&#34;) == &#34;firefox&#34;">
+                <CommentStep id="_1j-Z">
+                  <heading>Firefox will always directly download</heading>
+                </CommentStep>
+                <ProcedureCall id="_1P" procedure="Firefox.downloadOptions"/>
+              </ElseifSequence>
+              <ElseSequence id="_1j-W" name="pass"/>
+            </IfSequence>
+            <ProcedureCall id="_H"
+                           procedure="qfs.qft#qfs.web.browser.settings.doStartupSettings">
+              <variable name="client">$(client)</variable>
+              <variable name="browser">$(browser)</variable>
+              <variable name="mozhome">$(browserdir)</variable>
+              <variable name="emptyCache">true</variable>
+              <variable name="enableCookies">true</variable>
+              <variable name="deleteCookies">true</variable>
+              <variable name="locale">de</variable>
+              <variable name="enableProxy">false</variable>
+              <variable name="proxyAddress"/>
+              <variable name="proxyPort"/>
+              <variable name="proxyAutoconfigurl"/>
+              <variable name="enableProxyBypass">false</variable>
+              <variable name="proxyBypass"/>
+              <variable name="mozprofile"/>
+              <variable name="compatibilitymode">no</variable>
+            </ProcedureCall>
+          </BasicSequence>
+          <BasicSequence id="_I" name="Browser-Fenster öffnen">
+            <BrowserClientStarter browser="${default:browser:chrome}"
+                                  client="$(client)"
+                                  executable="${qftest:java}" id="_J"
+                                  openwindow="true"
+                                  url="https://www.7-zip.org/"/>
+            <DocumentWaiter client="$(client)" component="genericDocument"
+                            id="_K" timeout="60000"/>
+          </BasicSequence>
+          <BasicSequence id="_L" name="CustomWebResolver installieren">
+            <ProcedureCall id="_M"
+                           procedure="qfs.qft#qfs.web.ajax.installCustomWebResolver">
+              <variable name="client">$(client)</variable>
+              <variable name="resolver">autodetect</variable>
+              <variable name="version"/>
+              <variable name="genericClasses"/>
+              <variable name="attributesToGenericClasses"/>
+              <variable name="tagsToGenericClasses"/>
+              <variable name="ignoreTags">DIV,SPAN,</variable>
+              <variable name="ignoreByAttributes"/>
+              <variable name="autoIdPatterns"/>
+              <variable name="customIdAttributes"/>
+              <variable name="interestingByAttributes"/>
+              <variable name="attributesToQftFeature"/>
+              <variable name="documentJS"/>
+              <variable name="auto_angular_version">1</variable>
+              <variable name="auto_extjs_version">3</variable>
+              <variable name="auto_gwt_version">2</variable>
+              <variable name="auto_icefaces_version">1</variable>
+              <variable name="auto_jqueryui_version">1</variable>
+              <variable name="auto_jeasyui_version">1</variable>
+              <variable name="auto_kendoui_version">1</variable>
+              <variable name="auto_primefaces_version">2</variable>
+              <variable name="auto_qooxdoo_version">2</variable>
+              <variable name="auto_rap_version">3</variable>
+              <variable name="auto_richfaces_version">3</variable>
+              <variable name="auto_smartgwt_version">1</variable>
+              <variable name="auto_vaadin_version">2</variable>
+              <variable name="auto_zk_version">1</variable>
+              <comment>Dieser Aufruf installiert einen CustomWebResolver für AJAX Toolkits.
+Ein CustomWebResolver erlaubt es Ihnen die Spezifika Ihrer Webanwendung nach generischen Klassen von QF-Test zu übersetzen. Dieser Ansatz verbessert die Komponentenerkennung und erweitert die angebotenen Checkvarianten. Ihre Testfälle werden dadurch stabiler, robuster und lesbarer.
+Der wichtigste Parameter ist 'genericClasses'. Damit können Sie Werte des 'class' Attributes einer Komponente, z.B. 'btn', in einen QF-Test Button übersetzen. Dies geschieht mittels Angabe von btn=Button. Weitere Übersetzungen können sie kommasepariert angeben.
+Sie finden weitere Informationen im Kommentar der Prozedur selbst, hierfür einfach doppelt auf den Prozeduraufruf klicken.
+Im Handbuch finden Sie ein vollständiges Beispiel.</comment>
+            </ProcedureCall>
+          </BasicSequence>
+        </IfSequence>
+      </SetupSequence>
+    </Dependency>
+    <Package id="_1j+i" name="EDGE">
+      <Procedure id="_1j+p" name="handleDownloadDialog">
+        <variable name="filename"/>
+        <variable name="title">(?i)Datei.*auswählen|Datei hochladen|.*file upload.*</variable>
+        <variable name="button">(?i).*speichern|.*save</variable>
+        <comment>Handle the native Download dialog
+
+@param	filename	The name of the file to be downloaded
+@param	title	A regexp for the title of the dialog.
+@param	button	A regexp for the text on the save button.
+
+@author	QFS, pb</comment>
+        <IfSequence id="_1j+q" test="${qftest:windows}">
+          <ServerScriptStep id="_1j+r">
+            <code>import autowin
+import time
+from java.io import File
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+dialogTitleRe = rc.lookup("title")
+btnTitleRe = rc.lookup("button")
+
+wnd = autowin.waitForWindow(5000, dialogTitleRe, 1)
+if not wnd:
+    raise UserException("The dialog did not appear.")
+wnd.setForeground()
+
+edits = autowin.findChildWindows(wnd, clazz="Edit")
+if len(edits) == 0:
+    raise UserException("Window not found.")
+autowin.setWindowText(edits[0], fileName)
+time.sleep(1)
+
+btns = autowin.findChildWindows(wnd, btnTitleRe, 1, "Button")
+if len(btns) == 0:
+    rc.logWarning("Button '%s' not found" %btnTitleRe)
+    btns = autowin.findChildWindows(wnd, None, 0, "Button")
+    if len(btns) == 0:
+        raise UserException("Button not found.")
+btn = btns[0]
+autowin.doClick(btn, 10, 5)
+</code>
+          </ServerScriptStep>
+        </IfSequence>
+      </Procedure>
+      <Procedure id="_1j+j" name="download">
+        <variable name="componentToClick">linkDownload</variable>
+        <variable name="filename">a name for the file</variable>
+        <TryStep id="_1j+k">
+          <MouseEventStep clicks="1" client="$(client)"
+                          component="$(componentToClick)" event="MOUSE_MPRC"
+                          id="_1j+c" modifiers="16"/>
+          <ProcedureCall id="_1j+d" procedure="qfs.autowin.component.click">
+            <variable name="window">.*Microsoft Edge.*</variable>
+            <variable name="name"/>
+            <variable name="automationId">m_chevronButton</variable>
+            <variable name="controlType"/>
+            <variable name="index"/>
+            <variable name="className"/>
+            <variable name="timeout">10000</variable>
+          </ProcedureCall>
+          <ProcedureCall id="_W" predelay="200"
+                         procedure="qfs.autowin.keyevents.pressEnter">
+            <variable name="title">.*Microsoft Edge.*</variable>
+            <variable name="titleRegexp">true</variable>
+          </ProcedureCall>
+          <ProcedureCall id="_1j+e" procedure="EDGE.handleDownloadDialog">
+            <variable name="filename">$(filename)</variable>
+            <variable name="title">(?i).*Speichern unter.*|.*Datei speichern|.*file upload.*|.*download file.*</variable>
+            <variable name="button">(?i).*speichern|.*save</variable>
+          </ProcedureCall>
+          <TryStep id="_1j+f" name="Close the download toolbar">
+            <ProcedureCall id="_1j+g" procedure="qfs.autowin.component.click">
+              <variable name="window">.*Microsoft Edge.*</variable>
+              <variable name="name"/>
+              <variable name="automationId">NotificationBarCloseButton</variable>
+              <variable name="controlType"/>
+              <variable name="index"/>
+              <variable name="className"/>
+              <variable name="timeout">10000</variable>
+            </ProcedureCall>
+            <CatchSequence exception="TestException" id="_1j+h" maxerror="0"
+                           name="in case already closed"/>
+          </TryStep>
+          <CatchSequence exception="TestException" id="_1j+m" maxerror="0">
+            <ProcedureCall id="_1j+n" procedure="qfs.run-log.logWarning">
+              <variable name="message">download not successful</variable>
+              <variable name="report">true</variable>
+            </ProcedureCall>
+            <ProcedureCall id="_1j+o" procedure="qfs.utils.printMessage">
+              <variable name="message">download not successful</variable>
+            </ProcedureCall>
+          </CatchSequence>
+        </TryStep>
+      </Procedure>
+    </Package>
+    <Package id="_1p" name="Firefox">
+      <Procedure id="_1k1G" name="disableWebNotifications">
+        <comment>@authors QFS,plamen
+@since 5.0.2
+Tested with Firefox 77
+
+The procedure forces Firefox to disable web notificaitons. See https://support.mozilla.org/en-US/kb/push-notifications-firefox#w_how-do-i-stop-firefox-asking-me-to-allow-notifications</comment>
+        <ClientScriptStep client="$(client)" id="_1k1H">
+          <code>rc.engine.preferences().setBoolPref("firefox","dom.webnotifications.enabled", False)
+</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure id="_1K" name="downloadOptions">
+        <variable name="tempSubFolder"/>
+        <comment>@authors QFS,plamen
+@since 5.0.2
+Tested with Firefox 77
+
+The procedure forces Firefox to not ask where to save files. Direct download to your_system_temp/.downloads folder.
+MIME types handled:
+text/plain, application/octet-stream, application/binary, text/csv, application/csv, application/excel, text/comma-separated-values, text/xml, application/xml</comment>
+        <ClientScriptStep client="$(client)" id="_d">
+          <code>folder = rc.lookup("downloadFolder")
+
+rc.engine.preferences().setIntPref("firefox","browser.download.folderList",2)
+rc.engine.preferences().setBoolPref("firefox","browser.download.useDownloadDir",True)
+rc.engine.preferences().setStrPref("firefox","browser.download.defaultFolder", folder)
+rc.engine.preferences().setStrPref("firefox","browser.download.dir", folder)
+rc.engine.preferences().setBoolPref("firefox","pdfjs.disabled",True)
+rc.engine.preferences().setStrPref("firefox","browser.helperApps.neverAsk.saveToDisk", "text/plain, application/octet-stream, application/binary, text/csv, application/csv, application/excel, text/comma-separated-values, text/xml, application/xml")
+
+</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure id="_1j-q" name="Firefox - Linux">
+        <IfSequence id="_1j-r" test="not ${qftest:windows}">
+          <ServerScriptStep id="_1j+t">
+            <code>import autolin
+import time
+from java.io import File
+from java.awt import Robot
+from java.awt.event import KeyEvent
+from java.awt import Toolkit
+from java.awt.datatransfer import StringSelection
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+fileName = rc.lookup("filename")
+dialogTitleRe = rc.lookup("title")
+
+wnd = autolin.waitForWindow(1000, dialogTitleRe, 1)
+if not wnd:
+    raise UserException("The dialog did not appear.")
+autolin.setForeground(wnd)
+
+print autolin.getWindowText(wnd)
+
+robot = Robot()
+
+time.sleep(1)
+
+# Press control-L to activate location bar
+robot.setAutoDelay(100);
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_L);
+robot.keyRelease(KeyEvent.VK_L);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+# Paste the path of the file
+selection = StringSelection(fileName)
+clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
+clipboard.setContents(selection, selection)
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+time.sleep(1)
+# press return
+robot.delay(500)
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+
+time.sleep(5)</code>
+          </ServerScriptStep>
+        </IfSequence>
+      </Procedure>
+    </Package>
+    <Package id="_1c" name="Chrome">
+      <Procedure id="_1S" name="download">
+        <variable name="componentToClick">The QF-Test ID of the component to interact with.</variable>
+        <variable name="filename">Full path to the save location incl. file</variable>
+        <comment>Basically hit Enter after the download link of element is activated/clicked.
+
+@param componentToClick        The QF-Test ID of the component to interact with
+@param fileName	Full path to the save location incl. file
+@authors QFS,pv
+</comment>
+        <MouseEventStep clicks="1" client="$(client)"
+                        component="$(componentToClick)" event="MOUSE_MPRC"
+                        id="_1e" modifiers="16"/>
+        <BasicSequence id="_1j+w" name="Delay 200" postdelay="200"/>
+        <IfSequence id="_1j-1" test="${qftest:windows}">
+          <ServerScriptStep id="_1j+C">
+            <code>from java.awt import Robot
+from java.awt.event import KeyEvent
+import time
+from java.awt import Toolkit
+from java.awt.datatransfer import StringSelection
+from java.io import File
+
+
+robot = Robot()
+time.sleep(1)
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+# Paste the path of the file
+selection = StringSelection(fileName)
+clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
+clipboard.setContents(selection, selection)
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+time.sleep(1)
+
+# press return
+robot.delay(500)
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+
+time.sleep(1)
+</code>
+          </ServerScriptStep>
+          <ElseSequence id="_1j-3" name="Linux">
+            <comment>Requires Java 7</comment>
+            <ServerScriptStep id="_1j-4">
+              <code>import autolin
+import time
+from java.io import File
+from java.awt import Robot
+from java.awt.event import KeyEvent
+from java.awt import Toolkit
+from java.awt.datatransfer import StringSelection
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+fileName = rc.lookup("filename")
+dialogTitleRe = rc.lookup("title")
+
+wnd = autolin.waitForWindow(1000, dialogTitleRe, 1)
+if not wnd:
+    raise UserException("The dialog did not appear.")
+autolin.setForeground(wnd)
+
+print autolin.getWindowText(wnd)
+
+robot = Robot()
+
+time.sleep(1)
+
+# Paste the path of the file
+selection = StringSelection(fileName)
+clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
+clipboard.setContents(selection, selection)
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+time.sleep(1)
+# press return
+robot.delay(500)
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+
+time.sleep(1)</code>
+            </ServerScriptStep>
+          </ElseSequence>
+        </IfSequence>
+        <ProcedureCall id="_1j+H" procedure="qfs.run-log.logMessage">
+          <variable name="message">Download saved in $(downloadFolder)</variable>
+          <variable name="report">false</variable>
+          <variable name="dontcompactify">true</variable>
+        </ProcedureCall>
+        <ProcedureCall id="_1j+I" procedure="qfs.utils.printMessage">
+          <variable name="message">Download saved in $(downloadFolder)</variable>
+        </ProcedureCall>
+        <TryStep id="_1d">
+          <CatchSequence exception="TestException" id="_1j+E" maxerror="0">
+            <ProcedureCall id="_1j+G" procedure="qfs.run-log.logWarning">
+              <variable name="message">download not successful</variable>
+              <variable name="report">true</variable>
+            </ProcedureCall>
+            <ProcedureCall id="_1j+F" procedure="qfs.utils.printMessage">
+              <variable name="message">download not successful</variable>
+            </ProcedureCall>
+          </CatchSequence>
+        </TryStep>
+      </Procedure>
+      <Procedure id="_1s" name="downloadOptions">
+        <comment>@authors QFS,plamen
+@since 5.0.2
+ 
+Disable PDF Viewer and force showing download dialog.</comment>
+        <ClientScriptStep client="$(client)" id="_1r">
+          <code>rc.engine.preferences().setBoolPref("chrome", "download.prompt_for_download", True)
+rc.engine.preferences().setBoolPref("chrome", "download.directory_upgrade", True)
+rc.engine.preferences().setStrPref("chrome","plugins.plugins_disabled", "Chrome PDF Viewer")
+
+# The following can be used to set arbitary ChromeOptions. See:
+# https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/chrome/ChromeOptions.html
+
+#def setChromeOptions(data) {
+#   data.options.setExperimentalOption(name, value)
+#}
+
+#notifications.addObserver(notifications.CREATING_WEBDRIVER, this.&amp;setChromeOptions)</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure disabled="true" id="_Z" name="setupPopupCatcher">
+        <ClientScriptStep client="$(client)" id="_a">
+          <code>frame = rc.getComponent("genericDocument").getRootElement()
+
+frame.evalJS("""
+window.__originalOpen = window.open;
+window.open = function (url) { window.__catchedPopupUrl = url };
+""")</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure disabled="true" id="_X" name="getCachedUrl">
+        <ClientScriptStep client="$(client)" id="_Y">
+          <code>frame = rc.getComponent("genericDocument").getRootElement()
+
+url = frame.evalJS("window.__catchedPopupUrl")
+
+raise ReturnException(url)</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure disabled="true" id="_U" name="removePopupCatcher">
+        <ClientScriptStep client="$(client)" id="_V">
+          <code>frame = rc.getComponent("genericDocument").getRootElement()
+
+frame.evalJS("window.open = window.__originalOpen")</code>
+        </ClientScriptStep>
+      </Procedure>
+    </Package>
+    <Package id="_1k1m" name="Logging">
+      <Procedure id="_1k3Z" name="enableLoggingChromeDriver">
+        <ClientScriptStep client="$(client)" id="_1k39" interpreter="groovy">
+          <code>import org.openqa.selenium.logging.LogType
+import org.openqa.selenium.remote.CapabilityType
+import java.util.logging.Level
+import org.openqa.selenium.logging.LoggingPreferences
+
+notifications.addObserver(notifications.CREATING_WEBDRIVER, {
+    def prefs = new LoggingPreferences();
+    prefs.enable(LogType.BROWSER, Level.ALL);
+    it.options.setCapability(CapabilityType.LOGGING_PREFS, prefs)
+})</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure id="_1k1K" name="showWebConsoleDotLog">
+        <comment>Do NOT use in conjuction with the Intercept JS Log Procedure.
+
+Shows in QF-Test Terminal the console.log() message from Web Console. But does not save the messages in the run-log. </comment>
+        <ClientScriptStep client="$(client)" id="_1N">
+          <code>from java.lang import System
+
+#qf-Driver Mode
+System.setProperty("qftest.web.console_output","true")
+#WebDriver Mode
+System.setProperty("qftest.web.webdriver.redirect_js_console","true")</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure id="_1k1i" name="intercept JS console Log">
+        <variable name="nodeQfTestID">genericDocument</variable>
+        <comment>@deprecated</comment>
+        <ClientScriptStep client="$(client)" disabled="true" id="_1k1j">
+          <code>node = rc.getComponent("genericDocument");
+node.evalJS("""
+if (sessionStorage.getItem('intercepted')!='yes'){
+    sessionStorage.setItem('intercepted', 'yes')
+    sessionStorage.setItem("loggedMessages","Start QF-Test-LOG:");
+    var oldLog = console.log;
+    console.log = function(message) {
+        loggedMessages = sessionStorage.getItem("loggedMessages");
+        newMsg = loggedMessages+"\\n"+(new Date() + ":QF-Test-LOG: " + message);
+        sessionStorage.setItem("loggedMessages", newMsg);
+        oldLog.apply(console,arguments);
+    }
+};""")</code>
+        </ClientScriptStep>
+        <ClientScriptStep client="$(client)" id="_1k2-">
+          <code>node = rc.getComponent(rc.lookup("nodeQfTestID"));
+node.evalJS("""
+    window.onload = function(){
+        var oldLog = console.log;        
+        console.log = function(message) {
+            oldMessages = sessionStorage.getItem("loggedMessages")
+            loggedMessages = oldMessages == null ? "START":oldMessages;
+            newMsg = loggedMessages+"\\n"+(new Date() + ":QF-Test-LOG: " + message);
+            sessionStorage.setItem("loggedMessages", newMsg);
+            oldLog.apply(console,arguments);
+    };};
+""")</code>
+        </ClientScriptStep>
+      </Procedure>
+      <Procedure id="_1k1k"
+                 name="transfer JS console log messages to run-log">
+        <variable name="nodeQfTestID">genericDocument</variable>
+        <comment>@deprecated</comment>
+        <ClientScriptStep client="$(client)" disabled="true" id="_1k1l">
+          <code>node = rc.getComponent("genericDocument");
+messages = node.evalJS("""
+sessionStorage.getItem('loggedMessages');
+""")
+
+rc.logMessage("JavaScript console log: \n");
+rc.logMessage(messages);
+
+node.evalJS("""
+sessionStorage.setItem('loggedMessages','');
+""")
+node.evalJS("""
+sessionStorage.setItem('intercepted','no');
+""")</code>
+        </ClientScriptStep>
+        <ClientScriptStep client="$(client)" id="_1k30">
+          <code>node = rc.getComponent(rc.lookup("nodeQfTestID"));
+messages = node.evalJS("""
+sessionStorage.getItem('loggedMessages');
+""")
+
+rc.logMessage("JavaScript console log: \n");
+rc.logMessage(messages);
+
+node.evalJS("""
+sessionStorage.setItem('loggedMessages','');
+""")
+</code>
+        </ClientScriptStep>
+      </Procedure>
+    </Package>
+    <Procedure id="_1n" name="downloadFileViaScript">
+      <variable name="url"/>
+      <variable name="filename"/>
+      <comment>In case you need it quick and pure http. Cookies and browser specific headers are not set.</comment>
+      <ClientScriptStep client="$(client)" id="_1o">
+        <code>import urllib
+urllib.urlretrieve (rc.lookup('url'),rc.lookup('filename'))</code>
+      </ClientScriptStep>
+    </Procedure>
+    <Procedure id="_1h" name="createDownloadFolder">
+      <variable name="downloadTarget">as a result you will get -&gt; system_temp/randomName/tempSubFolder</variable>
+      <ServerScriptStep id="_1i" name="Create Download Folder">
+        <code>import tempfile
+
+
+folder = tempfile.mkdtemp(rc.lookup("downloadTarget"))
+
+rc.setLocal("downloadFolder",folder)</code>
+      </ServerScriptStep>
+      <ReturnStep id="_1j-Y" retval="$(downloadFolder)"/>
+    </Procedure>
+  </PackageRoot>
+  <ExtraSequence id="_4"/>
+  <WindowList id="_5">
+    <WebPageStep class="Window" feature="www.7-zip.org" height="676"
+                 id="7-zip.org" uid="_e" width="1457">
+      <extrafeature name="baseurl" negate="false" regexp="false" state="0">https://www.7-zip.org/</extrafeature>
+      <extrafeature name="qfs:class" negate="false" regexp="false" state="0">DOCUMENT</extrafeature>
+      <extrafeature name="qfs:genericclass" negate="false" regexp="false"
+                    state="0">Window</extrafeature>
+      <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                    state="0">DOCUMENT</extrafeature>
+      <extrafeature name="title" negate="false" regexp="false" state="0">7-Zip</extrafeature>
+      <extrafeature name="url" negate="false" regexp="false" state="0">https://www.7-zip.org/</extrafeature>
+      <ComponentStep class="HTML" classcount="1" classindex="0"
+                     id="7-zip.org.html" uid="_f">
+        <extrafeature name="qfs:class" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <extrafeature name="tag" negate="false" regexp="false" state="0">HTML</extrafeature>
+        <ComponentStep class="BODY" classcount="1" classindex="0"
+                       id="7-zip.org.body" uid="_g">
+          <extrafeature name="qfs:class" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <extrafeature name="tag" negate="false" regexp="false" state="0">BODY</extrafeature>
+          <ComponentStep class="TABLE" classcount="1" classindex="0"
+                         height="1163" id="7-zip.org.table" uid="_h"
+                         width="1429" x="0" y="0">
+            <extrafeature name="columns" negate="false" regexp="false"
+                          state="1">2</extrafeature>
+            <extrafeature name="qfs:class" negate="false" regexp="false"
+                          state="0">TABLE</extrafeature>
+            <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                          state="0">TABLE</extrafeature>
+            <extrafeature name="tag" negate="false" regexp="false" state="0">TABLE</extrafeature>
+            <ComponentStep class="TR" classcount="1" classindex="0"
+                           height="1143" id="7-zip.org.tr" uid="_i"
+                           width="1409" x="10" y="10">
+              <extrafeature name="qfs:class" negate="false" regexp="false"
+                            state="0">TR</extrafeature>
+              <extrafeature name="qfs:systemclass" negate="false"
+                            regexp="false" state="0">TR</extrafeature>
+              <extrafeature name="tag" negate="false" regexp="false"
+                            state="0">TR</extrafeature>
+              <ComponentStep class="TD" classcount="2" classindex="1"
+                             height="1143" id="7-zip.org.td" uid="_j"
+                             width="1259" x="150" y="0">
+                <extrafeature name="qfs:class" negate="false" regexp="false"
+                              state="0">TD</extrafeature>
+                <extrafeature name="qfs:systemclass" negate="false"
+                              regexp="false" state="0">TD</extrafeature>
+                <extrafeature name="tag" negate="false" regexp="false"
+                              state="0">TD</extrafeature>
+                <ComponentStep class="TABLE" classcount="1" classindex="0"
+                               height="1088" id="7-zip.org.table2" uid="_k"
+                               width="1239" x="10" y="10">
+                  <extrafeature name="columns" negate="false" regexp="false"
+                                state="1">2</extrafeature>
+                  <extrafeature name="qfs:class" negate="false" regexp="false"
+                                state="0">TABLE</extrafeature>
+                  <extrafeature name="qfs:systemclass" negate="false"
+                                regexp="false" state="0">TABLE</extrafeature>
+                  <extrafeature name="tag" negate="false" regexp="false"
+                                state="0">TABLE</extrafeature>
+                  <ComponentStep class="TR" classcount="1" classindex="0"
+                                 height="1080" id="7-zip.org.tr2" uid="_l"
+                                 width="1231" x="4" y="4">
+                    <extrafeature name="qfs:class" negate="false"
+                                  regexp="false" state="0">TR</extrafeature>
+                    <extrafeature name="qfs:systemclass" negate="false"
+                                  regexp="false" state="0">TR</extrafeature>
+                    <extrafeature name="tag" negate="false" regexp="false"
+                                  state="0">TR</extrafeature>
+                    <ComponentStep class="TD" classcount="2" classindex="0"
+                                   height="1080" id="7-zip.org.td2" uid="_m"
+                                   width="999" x="0" y="0">
+                      <extrafeature name="qfs:class" negate="false"
+                                    regexp="false" state="0">TD</extrafeature>
+                      <extrafeature name="qfs:systemclass" negate="false"
+                                    regexp="false" state="0">TD</extrafeature>
+                      <extrafeature name="tag" negate="false" regexp="false"
+                                    state="0">TD</extrafeature>
+                      <ComponentStep class="TABLE" classcount="3"
+                                     classindex="0" height="85"
+                                     id="7-zip.org.table3" uid="_n"
+                                     width="308" x="4" y="93">
+                        <extrafeature name="columns" negate="false"
+                                      regexp="false" state="1">4</extrafeature>
+                        <extrafeature name="qfs:class" negate="false"
+                                      regexp="false" state="0">TABLE</extrafeature>
+                        <extrafeature name="qfs:systemclass" negate="false"
+                                      regexp="false" state="0">TABLE</extrafeature>
+                        <extrafeature name="tag" negate="false" regexp="false"
+                                      state="0">TABLE</extrafeature>
+                        <ComponentStep class="TR" classcount="3"
+                                       classindex="1" height="27"
+                                       id="7-zip.org.tr3" uid="_o" width="306"
+                                       x="1" y="29">
+                          <extrafeature name="qfs:class" negate="false"
+                                        regexp="false" state="0">TR</extrafeature>
+                          <extrafeature name="qfs:systemclass" negate="false"
+                                        regexp="false" state="0">TR</extrafeature>
+                          <extrafeature name="tag" negate="false"
+                                        regexp="false" state="0">TR</extrafeature>
+                          <ComponentStep class="TD" classcount="4"
+                                         classindex="0" height="27"
+                                         id="7-zip.org.td3" uid="_p"
+                                         width="72" x="0" y="0">
+                            <extrafeature name="class" negate="false"
+                                          regexp="false" state="0">Item</extrafeature>
+                            <extrafeature name="qfs:class" negate="false"
+                                          regexp="false" state="0">TD</extrafeature>
+                            <extrafeature name="qfs:systemclass"
+                                          negate="false" regexp="false"
+                                          state="0">TD</extrafeature>
+                            <extrafeature name="tag" negate="false"
+                                          regexp="false" state="0">TD</extrafeature>
+                            <ComponentStep class="Link" classcount="1"
+                                           classindex="0" feature="Download"
+                                           height="15" id="linkDownload"
+                                           uid="_q" width="57" x="8" y="6">
+                              <extrafeature name="href" negate="false"
+                                            regexp="false" state="0">https://www.7-zip.org/a/7z1900.exe</extrafeature>
+                              <extrafeature name="qfs:class" negate="false"
+                                            regexp="false" state="0">A</extrafeature>
+                              <extrafeature name="qfs:genericclass"
+                                            negate="false" regexp="false"
+                                            state="0">Link</extrafeature>
+                              <extrafeature name="qfs:label" negate="false"
+                                            regexp="false" state="1">Download</extrafeature>
+                              <extrafeature name="qfs:systemclass"
+                                            negate="false" regexp="false"
+                                            state="0">A</extrafeature>
+                              <extrafeature name="tag" negate="false"
+                                            regexp="false" state="0">A</extrafeature>
+                            </ComponentStep>
+                          </ComponentStep>
+                        </ComponentStep>
+                      </ComponentStep>
+                    </ComponentStep>
+                  </ComponentStep>
+                </ComponentStep>
+              </ComponentStep>
+            </ComponentStep>
+          </ComponentStep>
+        </ComponentStep>
+      </ComponentStep>
+    </WebPageStep>
+    <WebPageStep class="Window" feature="www.qfs.de" height="3914" id="qfs.de"
+                 uid="_1k2H" width="990">
+      <extrafeature name="baseurl" negate="false" regexp="false" state="0">https://www.qfs.de/gratis-testen.html</extrafeature>
+      <extrafeature name="qfs:class" negate="false" regexp="false" state="0">DOCUMENT</extrafeature>
+      <extrafeature name="qfs:genericclass" negate="false" regexp="false"
+                    state="0">Window</extrafeature>
+      <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                    state="0">DOCUMENT</extrafeature>
+      <extrafeature name="title" negate="false" regexp="false" state="0">QF-Test Gratis Testen | Testlizenz beantragen - QF-Test</extrafeature>
+      <extrafeature name="url" negate="false" regexp="false" state="0">https://www.qfs.de/gratis-testen.html</extrafeature>
+      <ComponentStep class="HTML" classcount="1" classindex="0" id="html"
+                     uid="_1k2I">
+        <extrafeature name="qfs:class" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <ComponentStep class="BODY" classcount="1" classindex="0" id="body"
+                       uid="_1k2J">
+          <extrafeature name="qfs:class" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <ComponentStep class="DIV" classcount="8" classindex="4"
+                         feature="cookiebanner-body" height="0"
+                         id="cookiebanner-body" name="cookiebanner-body"
+                         uid="_1k2K" width="990" x="0" y="3914">
+            <extrafeature name="id" negate="false" regexp="false" state="1">cookiebanner-body</extrafeature>
+            <extrafeature name="qfs:class" negate="false" regexp="false"
+                          state="0">DIV</extrafeature>
+            <extrafeature name="qfs:originalid" negate="false" regexp="false"
+                          state="0">cookiebanner-body</extrafeature>
+            <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                          state="0">DIV</extrafeature>
+            <ComponentStep class="DIV" classcount="2" classindex="0"
+                           feature="cookiebanner" height="303"
+                           id="cookiebanner" name="cookiebanner" uid="_1k2L"
+                           width="990" x="0" y="345">
+              <extrafeature name="class" negate="false" regexp="false"
+                            state="1">cookiebar--show</extrafeature>
+              <extrafeature name="id" negate="false" regexp="false" state="1">cookiebanner</extrafeature>
+              <extrafeature name="qfs:class" negate="false" regexp="false"
+                            state="0">DIV</extrafeature>
+              <extrafeature name="qfs:originalid" negate="false"
+                            regexp="false" state="0">cookiebanner</extrafeature>
+              <extrafeature name="qfs:systemclass" negate="false"
+                            regexp="false" state="0">DIV</extrafeature>
+              <ComponentStep class="DIV" classcount="3" classindex="1"
+                             height="124" id="div" uid="_1k2M" width="990"
+                             x="0" y="10">
+                <extrafeature name="class" negate="false" regexp="false"
+                              state="1">cookie--content</extrafeature>
+                <extrafeature name="qfs:class" negate="false" regexp="false"
+                              state="0">DIV</extrafeature>
+                <extrafeature name="qfs:systemclass" negate="false"
+                              regexp="false" state="0">DIV</extrafeature>
+              </ComponentStep>
+              <ComponentStep class="DIV" classcount="3" classindex="0"
+                             height="648" id="div2" uid="_1k2N" width="990"
+                             x="0" y="0">
+                <extrafeature name="class" negate="false" regexp="false"
+                              state="1">overlay-cookies</extrafeature>
+                <extrafeature name="qfs:class" negate="false" regexp="false"
+                              state="0">DIV</extrafeature>
+                <extrafeature name="qfs:systemclass" negate="false"
+                              regexp="false" state="0">DIV</extrafeature>
+              </ComponentStep>
+              <ComponentStep class="DIV" classcount="3" classindex="2"
+                             height="159" id="div3" uid="_1k2n" width="994"
+                             x="0" y="106">
+                <extrafeature name="class" negate="false" regexp="false"
+                              state="1">cookie--footer</extrafeature>
+                <extrafeature name="qfs:class" negate="false" regexp="false"
+                              state="0">DIV</extrafeature>
+                <extrafeature name="qfs:systemclass" negate="false"
+                              regexp="false" state="0">DIV</extrafeature>
+                <ComponentStep class="DIV" classcount="1" classindex="0"
+                               height="119" id="div4" uid="_1k2o" width="954"
+                               x="20" y="20">
+                  <extrafeature name="class" negate="false" regexp="false"
+                                state="1">container--outer frame-layout-0</extrafeature>
+                  <extrafeature name="qfs:class" negate="false" regexp="false"
+                                state="0">DIV</extrafeature>
+                  <extrafeature name="qfs:systemclass" negate="false"
+                                regexp="false" state="0">DIV</extrafeature>
+                  <ComponentStep class="DIV" classcount="1" classindex="0"
+                                 height="119" id="div5" uid="_1k2p"
+                                 width="954" x="0" y="0">
+                    <extrafeature name="class" negate="false" regexp="false"
+                                  state="1">container--inner</extrafeature>
+                    <extrafeature name="qfs:class" negate="false"
+                                  regexp="false" state="0">DIV</extrafeature>
+                    <extrafeature name="qfs:systemclass" negate="false"
+                                  regexp="false" state="0">DIV</extrafeature>
+                    <ComponentStep class="DIV" classcount="2" classindex="0"
+                                   height="47" id="div6" uid="_1k2q"
+                                   width="354" x="0" y="0">
+                      <extrafeature name="class" negate="false" regexp="false"
+                                    state="1">cookie--actions</extrafeature>
+                      <extrafeature name="qfs:class" negate="false"
+                                    regexp="false" state="0">DIV</extrafeature>
+                      <extrafeature name="qfs:systemclass" negate="false"
+                                    regexp="false" state="0">DIV</extrafeature>
+                      <ComponentStep class="DIV" classcount="1" classindex="0"
+                                     height="47" id="div7" uid="_1k2r"
+                                     width="354" x="0" y="0">
+                        <extrafeature name="class" negate="false"
+                                      regexp="false" state="1">cookiebanner__consent</extrafeature>
+                        <extrafeature name="qfs:class" negate="false"
+                                      regexp="false" state="0">DIV</extrafeature>
+                        <extrafeature name="qfs:systemclass" negate="false"
+                                      regexp="false" state="0">DIV</extrafeature>
+                        <ComponentStep class="DIV" classcount="2"
+                                       classindex="0" height="47" id="div8"
+                                       uid="_1k2s" width="131" x="0" y="0">
+                          <extrafeature name="class" negate="false"
+                                        regexp="false" state="1">cookiebanner__consent-accept</extrafeature>
+                          <extrafeature name="qfs:class" negate="false"
+                                        regexp="false" state="0">DIV</extrafeature>
+                          <extrafeature name="qfs:systemclass" negate="false"
+                                        regexp="false" state="0">DIV</extrafeature>
+                          <ComponentStep class="Link" classcount="1"
+                                         classindex="0" feature="accept"
+                                         height="47" id="linkAccept"
+                                         uid="_1k2t" width="131" x="0" y="0">
+                            <extrafeature name="class" negate="false"
+                                          regexp="false" state="1">link--accept button-default-green-arrow</extrafeature>
+                            <extrafeature name="href" negate="false"
+                                          regexp="false" state="0">https://www.qfs.de/en.html</extrafeature>
+                            <extrafeature name="qfs:class" negate="false"
+                                          regexp="false" state="0">A</extrafeature>
+                            <extrafeature name="qfs:genericclass"
+                                          negate="false" regexp="false"
+                                          state="0">Link</extrafeature>
+                            <extrafeature name="qfs:label" negate="false"
+                                          regexp="false" state="1">accept</extrafeature>
+                            <extrafeature name="qfs:systemclass"
+                                          negate="false" regexp="false"
+                                          state="0">A</extrafeature>
+                          </ComponentStep>
+                        </ComponentStep>
+                      </ComponentStep>
+                    </ComponentStep>
+                  </ComponentStep>
+                </ComponentStep>
+              </ComponentStep>
+            </ComponentStep>
+          </ComponentStep>
+        </ComponentStep>
+      </ComponentStep>
+    </WebPageStep>
+  </WindowList>
+</RootStep>
