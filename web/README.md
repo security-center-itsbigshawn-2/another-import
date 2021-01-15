@@ -4,3 +4,4 @@
 * Download - Chrome, EDGE
 * Firefox - Disable Notifications
 * Copy Profile Firefox
+* Log Chrome logs, see: https://www.qfs.de/en/blog/article/2021/01/15/155.html
