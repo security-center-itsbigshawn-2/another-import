@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="root" version="5.2.1">
+  <include>qfs.qft</include>
+  <reference>qfs.qft</reference>
+  <TestSet id="_1" name="set1">
+    <CommentStep id="_1k3Q">
+      <heading>Log browser messages in the run-log</heading>
+    </CommentStep>
+    <TestCase id="_1k3F" name="Log Chrome logs from console">
+      <comment>@author cacse1</comment>
+      <DependencyReference id="_1k3G" reference="Open Browser">
+        <variable name="connectionMode">Prefer WebDriver</variable>
+        <variable name="url">https://lvz.de</variable>
+      </DependencyReference>
+      <ComponentWaiter client="$(client)" component="accept cookies"
+                       id="_1k3m" timeout="5000"/>
+      <MouseEventStep clicks="1" client="$(client)" component="accept cookies"
+                      event="MOUSE_MPRC" id="_1k3k" modifiers="16"
+                      postdelay="1000"/>
+      <ClientScriptStep client="$(client)" id="_1k3R" interpreter="groovy"
+                        name="Get Logs. After fetching them the logs in browser are cleared">
+        <code>import de.qfs.WebDriverConnection
+import org.openqa.selenium.logging.LogType
+import org.openqa.selenium.logging.LogEntry
+import de.qfs.lib.json.*
+
+
+def wdc = new WebDriverConnection(rc)
+def driver = wdc.getDriver()
+def logEntries = driver.manage().logs().get(LogType.BROWSER)
+logss = Json.value(logEntries.toJson()).toString(WriterConfig.PRETTY_PRINT)
+qf.println(logss)
+rc.logMessage("Browser LogEntries: \n" + logss, true)</code>
+      </ClientScriptStep>
+    </TestCase>
+  </TestSet>
+  <PackageRoot id="_3">
+    <Package id="_1k1m" name="Logging">
+      <Procedure id="_1k38" name="enableLoggingChromeDriver">
+        <ClientScriptStep client="$(client)" id="_1k39" interpreter="groovy">
+          <code>import org.openqa.selenium.logging.LogType
+import org.openqa.selenium.remote.CapabilityType
+import java.util.logging.Level
+import org.openqa.selenium.logging.LoggingPreferences
+
+notifications.addObserver(notifications.CREATING_WEBDRIVER, {
+    def prefs = new LoggingPreferences();
+    prefs.enable(LogType.BROWSER, Level.ALL);
+    prefs.enable(LogType.CLIENT, Level.ALL);
+    prefs.enable(LogType.PERFORMANCE, Level.ALL);
+    prefs.enable(LogType.SERVER, Level.ALL);
+    prefs.enable(LogType.DRIVER, Level.ALL);    
+    it.options.setCapability(CapabilityType.LOGGING_PREFS, prefs)
+})</code>
+          <comment>https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/logging/LogType.html
+</comment>
+        </ClientScriptStep>
+      </Procedure>
+    </Package>
+    <Dependency id="_1k1n" name="Open Browser">
+      <comment>@author d1
+@version v1
+</comment>
+      <SetupSequence id="_1k1o" name="Open Browser">
+        <comment>@author setup1</comment>
+        <BasicSequence id="_1k1p" name="Set global variables">
+          <SetGlobalStep id="_1k1q" varname="client">
+            <default>web</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k1r" varname="browser">
+            <default>chrome</default>
+          </SetGlobalStep>
+          <SetGlobalStep id="_1k1s" varname="mozhome"/>
+        </BasicSequence>
+        <BasicSequence id="_1k1t" name="Start browser without window">
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                connectionmode="${default:connectionMode:&#34;Prefer QF-Driver&#34;}"
+                                executable="${qftest:java}" id="_1k1u"
+                                mozhome="$(mozhome)" openwindow="false"/>
+          <ClientWaiter client="$(client)" id="_1k1v"/>
+        </BasicSequence>
+        <BasicSequence id="_1k1w" name="Perform browser settings">
+          <ProcedureCall id="_1k1x"
+                         procedure="qfs.qft#qfs.web.browser.settings.doStartupSettings">
+            <variable name="client">$(client)</variable>
+            <variable name="browser">$(browser)</variable>
+            <variable name="mozhome">$(mozhome)</variable>
+            <variable name="emptyCache">true</variable>
+            <variable name="enableCookies">true</variable>
+            <variable name="deleteCookies">true</variable>
+            <variable name="locale">en</variable>
+            <variable name="compatibilitymode">no</variable>
+          </ProcedureCall>
+          <ProcedureCall id="_1k3V"
+                         procedure="Logging.enableLoggingChromeDriver"/>
+        </BasicSequence>
+        <BasicSequence id="_1k1z" name="Open browser window with URL">
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                executable="${qftest:java}" id="_1k1+"
+                                openwindow="true"
+                                url="${default:url:&#34;https://www.qfs.de/&#34;}"/>
+          <DocumentWaiter client="$(client)" component="genericDocument"
+                          id="_1k1-" timeout="60000"/>
+        </BasicSequence>
+      </SetupSequence>
+    </Dependency>
+  </PackageRoot>
+  <ExtraSequence id="_4"/>
+  <WindowList id="_5">
+    <WebPageStep class="Window" feature="www.lvz.de" height="664" id="lvz.de"
+                 uid="_1k3Z" width="1011">
+      <extrafeature name="baseurl" negate="false" regexp="false" state="0">https://www.lvz.de/</extrafeature>
+      <extrafeature name="qfs:class" negate="false" regexp="false" state="0">DOCUMENT</extrafeature>
+      <extrafeature name="qfs:genericclass" negate="false" regexp="false"
+                    state="0">Window</extrafeature>
+      <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                    state="0">DOCUMENT</extrafeature>
+      <extrafeature name="title" negate="false" regexp="false" state="0">Start &#8211; LVZ - Leipziger Volkszeitung</extrafeature>
+      <extrafeature name="url" negate="false" regexp="false" state="0">https://www.lvz.de/</extrafeature>
+      <ComponentStep class="Button" classcount="2" classindex="0"
+                     feature="Zustimmen" id="accept cookies" uid="_1k3i">
+        <extrafeature name="class" negate="false" regexp="false" state="1">message-component message-button no-children cmp-button-primary</extrafeature>
+        <extrafeature name="qfs:class" negate="false" regexp="false"
+                      state="0">BUTTON:BUTTON</extrafeature>
+        <extrafeature name="qfs:genericclass" negate="false" regexp="false"
+                      state="0">Button</extrafeature>
+        <extrafeature name="qfs:label" negate="false" regexp="false"
+                      state="2">Zustimmen</extrafeature>
+        <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                      state="0">BUTTON:BUTTON</extrafeature>
+      </ComponentStep>
+    </WebPageStep>
+  </WindowList>
+</RootStep>
