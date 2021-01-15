@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="File Upload"
+          signature="302C02145F12A7221F37866A91E3DFEEDDCE0AA7A88C4AFA021445047AA0A5ED885EAB325C446B6AFA2E31A2B63B"
+          version="5.2.1">
+  <include>qfs.qft</include>
+  <variable name="filename">${qftest:dir.version}/doc/licenses/apache</variable>
+  <comment>How to hanlde File Upload and interact with the System File Choose Dialog.
+Info about QF-Test connection Modes https://www.qfs.de/en/qf-test-manual/lc/manual-en-tech_webconnectionmode.html</comment>
+  <DependencyReference forcedexec="true" id="_2JJo" reference="Create HTML"/>
+  <TestSet id="_2" name="Chrome, Firefox, Safari, Edge, MS Edge,">
+    <DependencyReference forcedexec="true" id="_1j+w"
+                         reference="Set Up Browser">
+      <variable name="connectionMode">WebDriver only</variable>
+      <variable name="browser">chrome</variable>
+    </DependencyReference>
+    <TestCase id="_1j+Y" name="Upload file with Dialog">
+      <MouseEventStep clicks="1" client="$(client)" component="myFile"
+                      event="MOUSE_MPRC" id="_2JJq" modifiers="16"
+                      postdelay="1000" x="10" y="0"/>
+      <ProcedureCall id="_1j+Z" procedure="uploadWithDialog">
+        <variable name="button">(?i).*ffnen|.*open</variable>
+        <variable name="filename">$(filename)</variable>
+        <variable name="title">(?i)Datei.*auswählen|Datei hochladen|.*file upload.*|Öffnen</variable>
+      </ProcedureCall>
+      <TryStep id="_2JFT">
+        <DocumentWaiter client="$(client)" component="index" id="_1j+o"
+                        timeout="1000"/>
+        <CatchSequence exception="TestException" id="_2JFU" maxerror="0"/>
+      </TryStep>
+      <CheckStringStep checktype="value" client="$(client)" component="myFile"
+                       id="_2JFS" regexp="true">
+        <text>.*apache.*</text>
+      </CheckStringStep>
+    </TestCase>
+    <TestCase id="_1j+y" name="Upload file using webdriver SendKeys">
+      <ProcedureCall id="_1j++" procedure="uploadWithSendKeys">
+        <variable name="id">myFile</variable>
+        <variable name="filename">$(filename)</variable>
+      </ProcedureCall>
+      <TryStep id="_2JFV">
+        <DocumentWaiter client="$(client)" component="index" id="_2JFW"
+                        timeout="1000"/>
+        <CatchSequence exception="TestException" id="_2JFX" maxerror="0"
+                       name="refresh"/>
+      </TryStep>
+      <CheckStringStep checktype="value" client="$(client)" component="myFile"
+                       id="_2JFY" regexp="true">
+        <text>.*apache.*</text>
+      </CheckStringStep>
+    </TestCase>
+  </TestSet>
+  <TestSet id="_2JJu" name="Embeded Chrome, IE">
+    <CommentStep id="_2JJs">
+      <heading> ==&gt; IE, Chrome use qfs.web.input.fileUpload </heading>
+    </CommentStep>
+    <DependencyReference forcedexec="true" id="_2JKI"
+                         reference="Set Up Browser">
+      <variable name="connectionMode">QF-Driver only</variable>
+    </DependencyReference>
+    <TestCase id="_2JK7" name="Chrome">
+      <fallback name="browser">ie</fallback>
+      <variable name="browser">chrome</variable>
+      <ProcedureCall id="_2JKk" procedure="qfs.web.input.fileUpload">
+        <variable name="id">${id:myFile}</variable>
+        <variable name="filename">$(filename)</variable>
+      </ProcedureCall>
+      <CheckStringStep checktype="value" client="$(client)" component="myFile"
+                       id="_2JKD" regexp="true">
+        <text>.*apache.*</text>
+      </CheckStringStep>
+    </TestCase>
+    <TestCase id="_2JKS" name="IE">
+      <fallback name="browser">ie</fallback>
+      <variable name="browser">ie</variable>
+      <ProcedureCall id="_2JKT" procedure="qfs.web.input.fileUpload">
+        <variable name="id">${id:myFile}</variable>
+        <variable name="filename">$(filename)</variable>
+      </ProcedureCall>
+      <CheckStringStep checktype="value" client="$(client)" component="myFile"
+                       id="_2JKX" regexp="true">
+        <text>.*apache.*</text>
+      </CheckStringStep>
+    </TestCase>
+  </TestSet>
+  <PackageRoot id="_3">
+    <Dependency id="_2JFf" name="Create HTML">
+      <SetupSequence id="_2JJl"
+                     name="Create the required HTML files next to the suite file">
+        <ServerScriptStep id="_2JJn" interpreter="groovy">
+          <code>import java.io.BufferedWriter
+import java.io.FileWriter
+
+def String createHtmlFileWithContent(String filePath, String content){
+    FileWriter fWriter = null;
+    BufferedWriter writer = null;
+    try {
+        fWriter = new FileWriter(filePath);
+        writer = new BufferedWriter(fWriter);
+        writer.write(content);
+        writer.newLine();
+        writer.close();
+    } catch (Exception e) {
+    //catch any exceptions here
+    }
+}
+
+String dirFiles = rc.lookup("qftest","suite.dir")+File.separatorChar;
+String pathMainHtml = dirFiles+"index.html";
+String contentMainHtml = "&lt;!DOCTYPE html&gt;\r\n&lt;html&gt;\r\n&lt;body&gt;\r\n\r\n&lt;h3&gt;A demonstration of how to access a File Upload Button&lt;/h3&gt;\r\n\r\n&lt;input type=\"file\" name=\"myFile\" id=\"myFile\"&gt;\r\n\r\n&lt;p&gt;Click the button to open file upload dialog.&lt;/p&gt;\r\n\r\n&lt;/body&gt;\r\n&lt;/html&gt;\r\n"
+
+createHtmlFileWithContent(pathMainHtml, contentMainHtml)
+
+</code>
+        </ServerScriptStep>
+      </SetupSequence>
+    </Dependency>
+    <Dependency id="_1j+u" name="Set Up Browser">
+      <discriminator>connectionMode</discriminator>
+      <discriminator>browser</discriminator>
+      <SetupSequence id="_6">
+        <SetGlobalStep id="_8" varname="client">
+          <default>web</default>
+        </SetGlobalStep>
+        <SetGlobalStep id="_A" varname="browserdir"/>
+        <SetGlobalStep id="_2JFc" local="true" varname="url">
+          <default>file:///${qftest:suite.dir}/index.html</default>
+        </SetGlobalStep>
+        <TryStep id="_2JFZ">
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                connectionmode="$(connectionMode)"
+                                executable="${qftest:java}" id="_C"
+                                mozhome="$(browserdir)" openwindow="false"/>
+          <ClientWaiter client="$(client)" id="_D"/>
+          <BrowserClientStarter browser="$(browser)" client="$(client)"
+                                executable="${qftest:java}" id="_H"
+                                openwindow="true" url="$(url)"/>
+          <DocumentWaiter client="$(client)" component="genericDocument"
+                          id="_I" resvarname="input" timeout="60000"/>
+          <CatchSequence exception="DuplicateClientException" id="_2JFa"
+                         maxerror="0" name="Refresh">
+            <ProcedureCall id="_2JFb"
+                           procedure="qfs.web.browser.general.showUrl">
+              <variable name="url">$(url)</variable>
+            </ProcedureCall>
+            <DocumentWaiter client="$(client)" component="genericDocument"
+                            id="_2JFe" resvarname="input" timeout="60000"/>
+          </CatchSequence>
+        </TryStep>
+      </SetupSequence>
+      <CleanupSequence id="_2JKM" name="Close client">
+        <ClientStopper client="$(client)" id="_3Cq"/>
+        <ProcessWaiter client="$(client)" id="_3GA"/>
+      </CleanupSequence>
+    </Dependency>
+    <Procedure id="_1j+U" name="uploadWithDialog">
+      <variable name="filename"/>
+      <variable name="title">(?i)Datei.*auswählen|Datei hochladen|.*file upload.*</variable>
+      <variable name="button">(?i).*ffnen|.*open</variable>
+      <comment>Handle the native Upload dialog
+
+@param	filename	The name of the file to be uploaded.
+@param	title	A regexp for the title of the dialog.
+@param	button	A regexp for the text on the open button.
+
+@author	QFS, pb</comment>
+      <IfSequence id="_1j+V" test="${qftest:windows}">
+        <ServerScriptStep id="_1j+W">
+          <code>import autowin
+import time
+from java.io import File
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+dialogTitleRe = rc.lookup("title")
+btnTitleRe = rc.lookup("button")
+
+wnd = autowin.waitForWindow(5000, dialogTitleRe, 1)
+if not wnd:
+    raise UserException("The dialog did not appear.")
+wnd.setForeground()
+
+edits = autowin.findChildWindows(wnd, clazz="Edit")
+if len(edits) == 0:
+    raise UserException("Edit window not found.")
+autowin.setWindowText(edits[0], fileName)
+time.sleep(1)
+
+btns = autowin.findChildWindows(wnd, btnTitleRe, 1, "Button")
+if len(btns) == 0:
+    rc.logWarning("Button '%s' not found" %btnTitleRe)
+    btns = autowin.findChildWindows(wnd, None, 0, "Button")
+    if len(btns) == 0:
+        raise UserException("Button not found.")
+btn = btns[0]
+autowin.doClick(btn, 10, 5)
+</code>
+        </ServerScriptStep>
+        <ElseifSequence id="_1j-6" test="${qftest:macos}">
+          <ServerScriptStep id="_1j-7">
+            <code>import time
+from java.io import File
+from java.awt import Robot
+from java.awt.event import KeyEvent
+from java.awt import Toolkit
+from java.awt.datatransfer import StringSelection
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+robot = Robot()
+
+# Press cmd-shift-G to navigate to folder
+robot.setAutoDelay(100);
+robot.keyPress(KeyEvent.VK_META);
+robot.keyPress(KeyEvent.VK_SHIFT);
+robot.keyPress(KeyEvent.VK_G);
+robot.keyRelease(KeyEvent.VK_G);
+robot.keyRelease(KeyEvent.VK_SHIFT);
+robot.keyRelease(KeyEvent.VK_META);
+
+time.sleep(0.25)
+
+# copy filename to clipboard to simplify input
+clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+transferable = StringSelection(fileName);
+clipboard.setContents(transferable, None);
+
+# Press cmd-V to paste folder
+robot.setAutoDelay(100);
+robot.keyPress(KeyEvent.VK_META);
+robot.keyPress(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_META);
+
+time.sleep(0.25)
+
+# press return to close popup
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+
+time.sleep(0.5)
+
+# press return to accept selection
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+</code>
+          </ServerScriptStep>
+        </ElseifSequence>
+        <ElseSequence id="_1j+X">
+          <comment>Requires Java 7</comment>
+          <ServerScriptStep id="_1j+C">
+            <code>import autolin
+import time
+from java.io import File
+from java.awt import Robot
+from java.awt.event import KeyEvent
+from java.awt import Toolkit
+from java.awt.datatransfer import StringSelection
+
+fileName = File(rc.lookup("filename")).getCanonicalPath()
+
+fileName = rc.lookup("filename")
+dialogTitleRe = rc.lookup("title")
+
+wnd = autolin.waitForWindow(1000, dialogTitleRe, 1)
+if not wnd:
+    raise UserException("The dialog did not appear.")
+autolin.setForeground(wnd)
+
+print autolin.getWindowText(wnd)
+
+robot = Robot()
+
+time.sleep(1)
+
+# Press control-L to activate location bar
+robot.setAutoDelay(100);
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_L);
+robot.keyRelease(KeyEvent.VK_L);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+# Paste the path of the file
+selection = StringSelection(fileName)
+clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
+clipboard.setContents(selection, selection)
+robot.keyPress(KeyEvent.VK_CONTROL);
+robot.keyPress(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_V);
+robot.keyRelease(KeyEvent.VK_CONTROL);
+
+time.sleep(1)
+# press return
+robot.delay(500)
+robot.keyPress(KeyEvent.VK_ENTER)
+robot.keyRelease(KeyEvent.VK_ENTER)
+
+time.sleep(5)</code>
+          </ServerScriptStep>
+        </ElseSequence>
+      </IfSequence>
+    </Procedure>
+    <Procedure id="_1j-5" name="uploadWithSendKeys">
+      <comment>Select a file using WebDriver sendKeys method
+
+@param	id	The QF-Test id of the upload file input
+@param	filename	The name of the file to be uploaded.
+
+@author	QFS, pb</comment>
+      <ClientScriptStep client="$(client)" id="_W">
+        <code>from webdriver import WebDriverConnection
+
+wdc = WebDriverConnection(rc)
+
+button = wdc.getElement(rc.lookup("id"))
+
+button.sendKeys(rc.lookup("filename"))</code>
+      </ClientScriptStep>
+    </Procedure>
+  </PackageRoot>
+  <ExtraSequence id="_4"/>
+  <WindowList id="_5">
+    <WebPageStep class="Window" feature="index.html" height="664" id="index"
+                 uid="_2JFJ" width="1200">
+      <extrafeature name="baseurl" negate="false" regexp="false" state="0">file:///C:/Users/plamen.QF-SOFTWARE/qf-test-public-repo/web/Upload file/index.html</extrafeature>
+      <extrafeature name="qfs:class" negate="false" regexp="false" state="0">DOCUMENT</extrafeature>
+      <extrafeature name="qfs:genericclass" negate="false" regexp="false"
+                    state="0">Window</extrafeature>
+      <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                    state="0">DOCUMENT</extrafeature>
+      <extrafeature name="url" negate="false" regexp="false" state="0">file:///C:/Users/plamen.QF-SOFTWARE/qf-test-public-repo/web/Upload file/index.html</extrafeature>
+      <ComponentStep class="HTML" classcount="1" classindex="0" id="html"
+                     uid="_2JFK">
+        <extrafeature name="qfs:class" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                      state="0">HTML</extrafeature>
+        <ComponentStep class="BODY" classcount="1" classindex="0" id="body"
+                       uid="_2JFL">
+          <extrafeature name="qfs:class" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                        state="0">BODY</extrafeature>
+          <ComponentStep class="TextField" classcount="1" classindex="0"
+                         feature="myFile" height="22" id="myFile"
+                         name="myFile" uid="_2JJp" width="253" x="0" y="40">
+            <extrafeature name="id" negate="false" regexp="false" state="1">myFile</extrafeature>
+            <extrafeature name="name" negate="false" regexp="false" state="1">myFile</extrafeature>
+            <extrafeature name="qfs:class" negate="false" regexp="false"
+                          state="0">INPUT:FILE</extrafeature>
+            <extrafeature name="qfs:genericclass" negate="false"
+                          regexp="false" state="0">TextField</extrafeature>
+            <extrafeature name="qfs:originalid" negate="false" regexp="false"
+                          state="0">myFile</extrafeature>
+            <extrafeature name="qfs:systemclass" negate="false" regexp="false"
+                          state="0">INPUT:FILE</extrafeature>
+          </ComponentStep>
+        </ComponentStep>
+      </ComponentStep>
+    </WebPageStep>
+  </WindowList>
+</RootStep>
