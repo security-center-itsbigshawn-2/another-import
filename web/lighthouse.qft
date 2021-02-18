@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="root" version="5.2.2">
+  <include>qfs.qft</include>
+  <TestCase id="_9" name="Lighthouse Test">
+    <ProcedureCall id="_k" procedure="checkLighthouseScores">
+      <variable name="website">https://www.qfs.de</variable>
+      <variable name="storagePath">${qftest:dir.runlog}</variable>
+      <variable name="performanceWarningLimit">-</variable>
+      <variable name="performanceErrorLimit">85</variable>
+      <variable name="accessibilityWarningLimit">90</variable>
+      <variable name="accessibilityErrorLimit">-</variable>
+      <variable name="bestPracticesWarningLimit">90</variable>
+      <variable name="bestPracticesErrorLimit">80</variable>
+      <variable name="seoWarningLimit">95</variable>
+      <variable name="seoErrorLimit">90</variable>
+      <variable name="appearInReport">1</variable>
+      <variable name="mobileEmulation">0</variable>
+      <variable name="additionalLighthouseParameters"/>
+    </ProcedureCall>
+  </TestCase>
+  <PackageRoot id="_3">
+    <Procedure id="_8" name="checkLighthouseScores">
+      <variable name="website"/>
+      <variable name="storagePath">${qftest:dir.runlog}</variable>
+      <variable name="performanceWarningLimit">80</variable>
+      <variable name="performanceErrorLimit">60</variable>
+      <variable name="accessibilityWarningLimit">80</variable>
+      <variable name="accessibilityErrorLimit">60</variable>
+      <variable name="bestPracticesWarningLimit">80</variable>
+      <variable name="bestPracticesErrorLimit">60</variable>
+      <variable name="seoWarningLimit">80</variable>
+      <variable name="seoErrorLimit">60</variable>
+      <variable name="appearInReport">1</variable>
+      <variable name="mobileEmulation">0</variable>
+      <variable name="additionalLighthouseParameters"/>
+      <comment>Create a lighthouse report of a website and check whether the scores for performance, accessibility, best practices or SEO fall below a specified warning or error limit.  
+
+Notes: 
+- The score for each of the four metrics can range from 0 to 100.
+- A warning or error limit will not be checked, if the respective value is set to "-".
+- As lighthouse will be run from the command line to create the report, it needs to be installed as a Node.js module beforehand.
+- Lighthouse performance scores tend to change from run to run due to variability in network availability, client hardware availability and client resource contention.
+
+
+@param	website		The URL of the website that will be tested (including http or https).
+@param	storagePath		The folder path which the lighthouse report should be saved in.
+@param	performanceWarningLimit	If the performance score falls below the 'performanceWarningLimit', a warning will be logged.
+@param	performanceErrorLimit	If the performance score falls below the 'performanceErrorLimit', an error will be logged.
+@param	accessibilityWarningLimit	If the accessibility score falls below the 'accessibilityWarningLimit', a warning will be logged.
+@param	accessibilityErrorLimit	If the accessibility score falls below the 'accessibilityErrorLimit', an error will be logged.
+@param	bestPracticesWarningLimit	If the best practices score falls below the 'bestPracticesWarningLimit', a warning will be logged.
+@param	bestPracticesErrorLimit	If the best practices score falls below the 'bestPracticesErrorLimit', an error will be logged.
+@param	seoWarningLimit	If the SEO score falls below the 'seoWarningLimit', a warning will be logged.
+@param	seoErrorLimit		If the SEO score falls below the 'seoErrorLimit', an error will be logged.
+@param	appearInReport	If this value is set to 0, only failed checks (warnings and errors) will be shown in the QF-Test report.
+			If this value is set to 1, successful checks will also be shown in the QF-Test report (Requirement: Checkbox "List checks" must be checked when generating the report`).
+@param	mobileEmulation	If this value is set to 0, Lighthouse will apply desktop emulation.
+			If this value is set to 1, Lighthouse will apply mobile emulation.
+@param	additionalLighthousePara...	Specifies additional lighthouse command line parameters.
+
+
+@throws	UserException 		if 'website' does not contain http or https.
+			if 'appearInReport', 'mobileEmulation' or 'attachToQFTestReport' are not set to 0 or 1.
+			if the lighthouse report could not be created. Potential reasons: Website or storage path do not exist  / Invalid additional lighthouse parameters.
+			if a warning or error limit is not numeric (except '-') or out of range (&lt;0 or &gt;100).
+			if the warning limit is lower than the error limit.
+
+
+@author	QFS
+@since</comment>
+      <ServerScriptStep id="_b" interpreter="groovy">
+        <code>import java.time.format.DateTimeFormatter;  
+import java.time.LocalDateTime;   
+import groovy.transform.Field;
+import de.qfs.apps.qftest.shared.exceptions.UserException;
+
+//Generate filename for report
+@Field String reportName = "";
+@Field String website = rc.lookup("website");    
+void generateWebsiteName(int position){
+    for(int i = position; i&lt;website.length(); i++){
+        if(website.charAt(i) == '/')
+            break;
+        else 
+            reportName += website.charAt(i);
+    }
+}
+if(website.matches("http://.*")){
+    generateWebsiteName(7);
+}else if(website.matches("https://.*")){
+    generateWebsiteName(8);
+}else{
+    throw new UserException("Invalid value for parameter \"website\".");
+}
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("_yyyy-MM-dd_HH-mm");  
+LocalDateTime now = LocalDateTime.now();
+reportName += dtf.format(now);
+rc.setLocal("reportName", reportName);
+
+//Check parameter 'mobileEmulation'
+String mobileEmulation = rc.lookup("mobileEmulation");
+if(mobileEmulation.equals("0")){
+    String additionalLighthouseParameters = rc.lookup("additionalLighthouseParameters");
+    additionalLighthouseParameters += " --preset=desktop";
+    rc.setLocal("additionalLighthouseParameters", additionalLighthouseParameters);
+}else if(!mobileEmulation.equals("1")){
+    throw new UserException("Invalid value for parameter \"mobileEmulation\".");
+}</code>
+      </ServerScriptStep>
+      <ShellClientStarter client="lighthouse"
+                          command="lighthouse $(website) --chrome-flags=&#34;--headless&#34; --output=json,html  --output-path=&#34;$(reportName)&#34; $(additionalLighthouseParameters) 2&gt;&amp;1"
+                          directory="$(storagePath)" id="_B"/>
+      <ProcessWaiter client="lighthouse" id="_Q" timeout="120000"/>
+      <ServerScriptStep id="_K" interpreter="groovy">
+        <code>import java.nio.file.Files;
+import java.nio.file.Paths;
+import groovy.json.*;
+import java.util.concurrent.TimeUnit;
+import groovy.transform.Field;
+import de.qfs.apps.qftest.shared.exceptions.UserException;
+
+//Wait for report
+String storagePath = rc.lookup("storagePath");
+String filePath = Paths.get(storagePath,rc.lookup("reportName")+".report.json");
+File report = new File(filePath);
+long currentTime = new Date().getTime();
+long timeOfCreation = report.lastModified();
+if(timeOfCreation == 0 || currentTime - timeOfCreation &gt; 300000){ 
+    throw new UserException("Lighthouse report could not be created.");
+}
+
+//Parse JSON file
+String jsonString = new String(Files.readAllBytes(Paths.get(filePath)));
+def jsonSlurper = new JsonSlurper();
+Map parsedJSON = jsonSlurper.parseText(jsonString) ;
+report.delete();
+
+//Get results
+int performanceScore = (int) (parsedJSON.categories.performance.score * 100);
+int accessibilityScore = (int) (parsedJSON.categories.accessibility.score * 100);
+int bestPracticesScore = (int) (parsedJSON.categories.get("best-practices").score * 100);
+int seoScore = (int) (parsedJSON.categories.seo.score * 100);
+
+//Check parameter 'appearInReport'
+@Field def appearInReport = rc.lookup("appearInReport");
+if(appearInReport == "0")
+    appearInReport = false;
+else if(appearInReport == "1")
+    appearInReport = true;
+else
+    throw new UserException("Invalid value for parameter \"appearInReport\".");
+
+@Field String summary = "Summary \n\n";
+void checkValues(String warningVariable, String errorVariable, String category, int categoryScore){
+    summary += "------------------\n";
+    summary += " " + Character.toUpperCase(category.charAt(0)).toString() + category.substring(1)+ "\n";
+    summary += "------------------\n";    
+
+    String warningLimitString = rc.lookup(warningVariable);
+    String errorLimitString = rc.lookup(errorVariable);
+    int warningLimitInt = 0;
+    int errorLimitInt = 0;
+    
+    //Check for correct user input
+    if (warningLimitString.isNumber()){
+        warningLimitInt = Integer.parseInt(warningLimitString);
+    }else{
+        if(warningLimitString != "-"){
+            throw new UserException("Invalid value for parameter \"" + warningVariable + "\".");
+        }
+    }
+    if (errorLimitString.isNumber()){
+        errorLimitInt = Integer.parseInt(errorLimitString);
+    }else{
+        if(errorLimitString != "-"){
+            throw new UserException("Invalid value for parameter \"" + errorVariable + "\".");
+        }
+    }
+    if(warningLimitString != "-" &amp;&amp; (warningLimitInt &lt; 0 || warningLimitInt &gt; 100)){
+        throw new UserException("Invalid value for parameter \"" + warningVariable + "\".");
+    }else if(errorLimitString != "-" &amp;&amp; (errorLimitInt &lt; 0 || errorLimitInt &gt; 100)){
+        throw new UserException("Invalid value for parameter \"" + errorVariable + "\".");
+    }else if(warningLimitString != "-" &amp;&amp; errorLimitString != "-" &amp;&amp; warningLimitInt &lt; errorLimitInt){
+        throw new UserException("\"" + warningVariable + "\" cannot be lower than \"" + errorVariable + "\".");
+    }
+    
+    //Compare user input with results
+    String comparisonEmpty = "Not checked" + "\n" + "Expected: -" + "\n" + "Got: -" + "\n\n";
+    if(errorLimitString != "-"){
+        String comparison = "Expected: '&gt;=" + errorLimitInt + "'\n" + "Got: '" + categoryScore + "'";
+        if(errorLimitInt &gt; categoryScore){
+            summary += "Error Limit: Check failed" + "\n" + comparison + "\n\n";
+            summary += "Warning Limit: " + comparisonEmpty;
+            rc.check(false, "The " + category + " score fell below the error limit." + "\n" + comparison, rc.ERROR, true, false);
+            return;
+        }else{
+            summary += "Error Limit: Check OK" + "\n" + comparison + "\n\n";
+            rc.check(true, "The " + category + " score did not fall below the error limit." + "\n" + comparison, rc.OK, appearInReport, false);
+        }
+    }else{
+        summary += "Error Limit: " + comparisonEmpty;
+    }
+    if (warningLimitString != "-"){
+        String comparison = "Expected: '&gt;=" + warningLimitInt + "'\n" + "Got: '" + categoryScore + "'";
+        if(warningLimitInt &gt; categoryScore){
+            summary += "Warning Limit: Check failed" + "\n" + comparison + "\n\n";
+            rc.check(false, "The " + category + " score fell below the warning limit." + "\n" + comparison, rc.WARNING, true, false);
+            return;
+        }else{
+            summary += "Warning Limit: Check OK" + "\n" + comparison + "\n\n";
+            rc.check(true, "The " + category + " score did not fall below the warning limit." + "\n" + comparison, rc.OK, appearInReport, false);
+        }
+    }else{
+        summary += "Warning Limit: " + comparisonEmpty;
+    }
+}
+
+checkValues("performanceWarningLimit", "performanceErrorLimit", "performance", performanceScore);
+checkValues("accessibilityWarningLimit", "accessibilityErrorLimit", "accessibility", accessibilityScore);
+checkValues("bestPracticesWarningLimit", "bestPracticesErrorLimit", "best practices", bestPracticesScore);
+checkValues("seoWarningLimit", "seoErrorLimit", "SEO", seoScore);
+summary += "\nThe Lighthouse report was saved in " + storagePath + ".";
+rc.logMessage(summary, dontcompactify:false, report:false, nowrap:true);</code>
+      </ServerScriptStep>
+    </Procedure>
+  </PackageRoot>
+  <ExtraSequence id="_4"/>
+  <WindowList id="_5"/>
+</RootStep>
