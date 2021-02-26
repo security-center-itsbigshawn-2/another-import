@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
-<RootStep id="_0" name="root" version="5.2.1">
+<RootStep id="_0" name="root"
+          signature="302C02142F2F30B813C1C4840D59C26D4B4D5164F6073B140214731796B5054CF96721B6C8547E29FA53B346A003"
+          version="5.2.2">
   <include>qfs.qft</include>
   <reference>qfs.qft</reference>
   <variable name="downloadSubFolder">downloads</variable>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
-<RootStep id="_0" name="root" version="5.2.1">
+<RootStep id="_0" name="root"
+          signature="302D021434EB09A2FC87E5089FE4180AABB5E4773F3F4616021500C03572353C0EF955F3C4E5ACB2CCA0CE39258ED5"
+          version="5.2.2">
   <include>qfs.qft</include>
   <reference>qfs.qft</reference>
   <TestSet id="_1" name="set1">

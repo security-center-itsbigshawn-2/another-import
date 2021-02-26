@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
-<RootStep id="_0" name="root" version="5.2.1">
+<RootStep id="_0" name="root"
+          signature="302D021500D554F1F808000BCC0C67CDD6B058E2C25C85704C021423B86FDE7BBA2CF0FE85DC290089CF724F4D34FD"
+          version="5.2.2">
   <include>qfs.qft</include>
   <variable name="baseUrl">host:port</variable>
   <variable name="project">MyProject</variable>

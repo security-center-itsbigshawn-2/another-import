@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
-<RootStep id="_0" name="root" version="5.2.2">
+<RootStep id="_0" name="root"
+          signature="302D021500A69E5DE502902BA81640F079485446DF265D95E8021462F434006B1BEFE29FEF3CE7E08C2DF49B9DA3B2"
+          version="5.2.2">
   <include>qfs.qft</include>
   <TestCase id="_9" name="Lighthouse Test">
     <ProcedureCall id="_k" procedure="checkLighthouseScores">
