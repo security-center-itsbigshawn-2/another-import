@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
 <RootStep id="_0" name="File Upload"
-          signature="302C02145F12A7221F37866A91E3DFEEDDCE0AA7A88C4AFA021445047AA0A5ED885EAB325C446B6AFA2E31A2B63B"
-          version="5.2.1">
+          signature="302D02146862D3AB9FD63A9B32AFE767D63E13D4A7C0898802150094AA66FD3C1E88AC0B3445E2031CB603F7F891FD"
+          version="5.2.3">
   <include>qfs.qft</include>
   <variable name="filename">${qftest:dir.version}/doc/licenses/apache</variable>
-  <comment>How to hanlde File Upload and interact with the System File Choose Dialog.
+  <comment>How to handle File Upload and interact with the System File Choose Dialog.
 Info about QF-Test connection Modes https://www.qfs.de/en/qf-test-manual/lc/manual-en-tech_webconnectionmode.html</comment>
   <DependencyReference forcedexec="true" id="_2JJo" reference="Create HTML"/>
   <TestSet id="_2" name="Chrome, Firefox, Safari, Edge, MS Edge,">
+    <variable name="connectionMode">WebDriver only</variable>
+    <variable name="browser">chrome</variable>
     <DependencyReference forcedexec="true" id="_1j+w"
-                         reference="Set Up Browser">
-      <variable name="connectionMode">WebDriver only</variable>
-      <variable name="browser">chrome</variable>
-    </DependencyReference>
+                         reference="Set Up Browser"/>
     <TestCase id="_1j+Y" name="Upload file with Dialog">
       <MouseEventStep clicks="1" client="$(client)" component="myFile"
                       event="MOUSE_MPRC" id="_2JJq" modifiers="16"
-                      postdelay="1000" x="10" y="0"/>
+                      postdelay="1000"/>
       <ProcedureCall id="_1j+Z" procedure="uploadWithDialog">
         <variable name="button">(?i).*ffnen|.*open</variable>
         <variable name="filename">$(filename)</variable>
@@ -51,15 +50,15 @@ Info about QF-Test connection Modes https://www.qfs.de/en/qf-test-manual/lc/manu
     </TestCase>
   </TestSet>
   <TestSet id="_2JJu" name="Embeded Chrome, IE">
+    <variable name="browser">chrome</variable>
+    <variable name="connectionMode">QF-Driver only</variable>
     <CommentStep id="_2JJs">
       <heading> ==&gt; IE, Chrome use qfs.web.input.fileUpload </heading>
     </CommentStep>
     <DependencyReference forcedexec="true" id="_2JKI"
-                         reference="Set Up Browser">
-      <variable name="connectionMode">QF-Driver only</variable>
-    </DependencyReference>
+                         reference="Set Up Browser"/>
     <TestCase id="_2JK7" name="Chrome">
-      <fallback name="browser">ie</fallback>
+      <fallback name="browser">chrome</fallback>
       <variable name="browser">chrome</variable>
       <ProcedureCall id="_2JKk" procedure="qfs.web.input.fileUpload">
         <variable name="id">${id:myFile}</variable>
@@ -118,6 +117,7 @@ createHtmlFileWithContent(pathMainHtml, contentMainHtml)
     <Dependency id="_1j+u" name="Set Up Browser">
       <discriminator>connectionMode</discriminator>
       <discriminator>browser</discriminator>
+      <variable name="browser">$(browser)</variable>
       <SetupSequence id="_6">
         <SetGlobalStep id="_8" varname="client">
           <default>web</default>
@@ -309,19 +309,22 @@ time.sleep(5)</code>
 @author	QFS, pb</comment>
       <ClientScriptStep client="$(client)" id="_W">
         <code>from webdriver import WebDriverConnection
+from java.io import File
 
 wdc = WebDriverConnection(rc)
 
 button = wdc.getElement(rc.lookup("id"))
-
-button.sendKeys(rc.lookup("filename"))</code>
+fn = rc.lookup("filename")
+fn = fn.replace("/","\\")
+aFile = File(fn)
+button.sendKeys(aFile.getAbsolutePath())</code>
       </ClientScriptStep>
     </Procedure>
   </PackageRoot>
   <ExtraSequence id="_4"/>
   <WindowList id="_5">
-    <WebPageStep class="Window" feature="index.html" height="664" id="index"
-                 uid="_2JFJ" width="1200">
+    <WebPageStep class="Window" feature="index.html" height="670" id="index"
+                 uid="_2JKq" width="1012">
       <extrafeature name="baseurl" negate="false" regexp="false" state="0">file:///C:/Users/plamen.QF-SOFTWARE/qf-test-public-repo/web/Upload file/index.html</extrafeature>
       <extrafeature name="qfs:class" negate="false" regexp="false" state="0">DOCUMENT</extrafeature>
       <extrafeature name="qfs:genericclass" negate="false" regexp="false"
@@ -330,20 +333,20 @@ button.sendKeys(rc.lookup("filename"))</code>
                     state="0">DOCUMENT</extrafeature>
       <extrafeature name="url" negate="false" regexp="false" state="0">file:///C:/Users/plamen.QF-SOFTWARE/qf-test-public-repo/web/Upload file/index.html</extrafeature>
       <ComponentStep class="HTML" classcount="1" classindex="0" id="html"
-                     uid="_2JFK">
+                     uid="_7">
         <extrafeature name="qfs:class" negate="false" regexp="false"
                       state="0">HTML</extrafeature>
         <extrafeature name="qfs:systemclass" negate="false" regexp="false"
                       state="0">HTML</extrafeature>
         <ComponentStep class="BODY" classcount="1" classindex="0" id="body"
-                       uid="_2JFL">
+                       uid="_2JKr">
           <extrafeature name="qfs:class" negate="false" regexp="false"
                         state="0">BODY</extrafeature>
           <extrafeature name="qfs:systemclass" negate="false" regexp="false"
                         state="0">BODY</extrafeature>
           <ComponentStep class="TextField" classcount="1" classindex="0"
                          feature="myFile" height="22" id="myFile"
-                         name="myFile" uid="_2JJp" width="253" x="0" y="40">
+                         name="myFile" uid="_9" width="240" x="0" y="40">
             <extrafeature name="id" negate="false" regexp="false" state="1">myFile</extrafeature>
             <extrafeature name="name" negate="false" regexp="false" state="1">myFile</extrafeature>
             <extrafeature name="qfs:class" negate="false" regexp="false"
