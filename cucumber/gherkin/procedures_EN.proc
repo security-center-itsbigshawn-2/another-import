@@ -1,0 +1,7 @@
+x	given	^$	p1=x,p2:1
+empty	given,and	^$
+
+
+actions.enter	given,and	^I have entered the Number (\d+) in the calculator$	number:1
+actions.press	given,and,when	^I press the "([^\"]+)" Key$	key:1
+actions.check	then	^on the screen should be displayed the result (\d+,\d+)$	result:1

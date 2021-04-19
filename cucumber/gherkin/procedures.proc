@@ -1,0 +1,7 @@
+x	given	^$	p1=x,p2:1
+empty	given,and	^$
+
+actions.eingabe	angenommen,und	^ich habe die Zahl (\d+) im Taschenrechner eingegeben$	zahl:1
+actions.druck	angenommen,und	^ich habe die Taste "([^\"]+)" gedrückt$	taste:1
+actions.druck	wenn	^ich auf die Taste "([^\"]+)" drücke$	taste:1
+actions.ueberpruef	dann,und	^sollte als Resultat (\d+,\d+) am Bildschirm ausgegeben werden$	resultat:1

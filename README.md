@@ -6,6 +6,7 @@ This is the place to add your Test-Suites with generic solutions for topics whic
 2. web.qft  - examples of setting different options in browsers, mostly WebDriver connection mode
 3. UploadFile.qft - file upload for various browsers
 4. lighthouse.qft - integrated Lighthause audit - see Blog [Automated website audits with Lighthouse and QF-Test]( https://www.qfs.de/en/blog/article/2021/02/18/166.html )
+5. Cucumber 1.2.5 demo - an example how to use existing or new Cucumber tests with QF-Test
 
 For more information see the respective README.md files.
 
@@ -13,4 +14,4 @@ For more information see the respective README.md files.
 
 This README will be enriched after the holidays. Stay safe and healthy!
 
-_18.12.2020, QFS_
+_19.04.2021, QFS_

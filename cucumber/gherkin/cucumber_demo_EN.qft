@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE RootStep>
+<RootStep id="_0" name="root" version="4.6.0">
+  <include>qfs.qft</include>
+  <TestCase id="_2Jkt" name="Cucumber">
+    <ProcedureCall id="_2Jku" procedure="cucumber.executeGherkinScript">
+      <variable name="featureFile">${qftest:suite.dir}/exampleScript_EN.feature</variable>
+      <variable name="featureFileEncoding">UTF-8</variable>
+      <variable name="procedureDefinitionFile">${qftest:suite.dir}/procedures_EN.proc</variable>
+      <variable name="procedureDefinitionFileEncoding">UTF-8</variable>
+    </ProcedureCall>
+  </TestCase>
+  <PackageRoot id="_3">
+    <Package id="_D" name="actions">
+      <Procedure id="_2Jkm" name="enter">
+        <variable name="number"/>
+        <ServerScriptStep id="_2Jko">
+          <code>print "Entered %s" % rc.lookup("number")</code>
+        </ServerScriptStep>
+      </Procedure>
+      <Procedure id="_2Jkp" name="press">
+        <variable name="key"/>
+        <ServerScriptStep id="_2Jkq">
+          <code>print "Pressed %s" % rc.lookup("key")</code>
+        </ServerScriptStep>
+      </Procedure>
+      <Procedure id="_2Jkr" name="check">
+        <variable name="result"/>
+        <ServerScriptStep id="_2Jks">
+          <code>print "Checked %s" % rc.lookup("result")</code>
+        </ServerScriptStep>
+      </Procedure>
+    </Package>
+    <Package id="_2Jkv" name="cucumber">
+      <Procedure id="_9" name="executeGherkinScript">
+        <variable name="featureFile"/>
+        <variable name="featureFileEncoding"/>
+        <variable name="procedureDefinitionFile"/>
+        <variable name="procedureDefinitionFileEncoding"/>
+        <ServerScriptStep id="_B" name="executeGherkinScript">
+          <code>import codecs, json, re
+from gherkin.parser import Parser
+from gherkin.formatter import JSONFormatter
+from java.io import StringWriter
+
+def parseFeatureFile(fileLocation, fileEncoding):
+    featureFileContent = None
+    with codecs.open(fileLocation, "r", fileEncoding) as inF:
+        featureFileContent = inF.read()
+    sw = StringWriter()
+    formatter = JSONFormatter(sw)
+    p = Parser(formatter)
+    p.parse(featureFileContent, fileLocation, 0)
+    formatter.done()
+    formatter.close()
+    return json.loads(sw.toString())
+
+def tpl(x):
+    if "=" in x:
+        x = x.split("=", 1)
+        return (x[0].strip(), "=", x[1])
+    else:
+        x = x.split(":", 1)
+        return (x[0].strip(), ":", int(x[1].strip()))
+
+def parseProcedureDefinitionParameter(param):
+    parts, escapeFlag, current = [], False, []
+    for c in param:
+        if escapeFlag:
+            if c == "n":
+                current.append("\n")
+            elif c == "r":
+                current.append("\r")
+            elif c == "t":
+                current.append("\t")
+            elif c == ",":
+                current.append(",")
+            elif c == "\\":
+                current.append("\\")
+            escapeFlag = False
+        else:
+            if c == "\\":
+                escapeFlag = True
+            elif c == ",":
+                parts.append("".join(current))
+                current = []
+            else:
+                current.append(c)
+    parts.append("".join(current))
+    parts = filter(lambda x : x.strip() != "", parts)
+    parts = map(lambda x : tpl(x), parts)
+    return parts
+
+def parseProcedureDefinitionFile(fileLocation, fileEncoding):
+    procedures = []
+    with codecs.open(fileLocation, "r", fileEncoding) as inF:
+        lineNo = 0
+        for line in inF:
+            lineNo += 1
+            line = line.strip()
+            if line == "" or line.startswith("#"): continue
+            parts = line.split("\t", 3)
+            if not (len(parts) == 3 or len(parts) == 4): raise Exception("Please check line %s in file %s" % (lineNo, fileLocation))
+            try: procedures.append((parts[0], [x.strip() for x in parts[1].lower().split(",") if x.strip() != ""], re.compile(parts[2]), parseProcedureDefinitionParameter(parts[3]) if len(parts) == 4 else []))
+            except: raise Exception("Please check line %s in file %s" % (lineNo, fileLocation))
+    return procedures
+
+#BEGIN
+
+# read in the feature file and the procedure mapping file
+featureFile = parseFeatureFile(rc.lookup("featureFile"), rc.lookup("featureFileEncoding"))
+procDefFile = parseProcedureDefinitionFile(rc.lookup("procedureDefinitionFile"), rc.lookup("procedureDefinitionFileEncoding"))
+
+# exec feature file
+for feature in featureFile:
+    rc.logMessage("Executing Gherkin script testing feature %s (line %s)\n\n%s" % (feature['name'], feature['line'], feature['description']))
+    for element in feature['elements']:
+        rc.logMessage("Executing scenario: %s (line %s)\n\n%s" % (element['name'], element['line'], element['description']))
+        for step in element['steps']:
+            keyword, name, line = step['keyword'].strip().lower(), step['name'], step['line']
+            procedureToExecute = None
+            for procedure in procDefFile:
+                if keyword in procedure[1]:
+                    if procedure[2].match(name):
+                        if procedureToExecute == None:
+                            procedureToExecute = procedure
+                        else:                            
+                            raise Exception("Multiple procedures matching expression %s %s, line %s ... Don't know which to execute!" % (keyword, name, line))
+            if procedureToExecute == None:
+                raise Exception("Don't know which procedure to execute for Step %s %s, line %s!" % (keyword, name, line))
+            else:
+                procedureParameters = {}
+                m = procedureToExecute[2].match(name)
+                for v in procedureToExecute[3]:
+                    if v[1] == "=": procedureParameters[v[0]] = v[1]
+                    elif v[1] == ":": procedureParameters[v[0]] = m.groups(v[1])[0]
+                rc.logMessage( "Executing step: %s %s (line %s) -&gt; %s(%s)" % (keyword, name, line, procedureToExecute[0], procedureParameters))
+                rc.callProcedure(procedureToExecute[0], procedureParameters)</code>
+        </ServerScriptStep>
+      </Procedure>
+    </Package>
+  </PackageRoot>
+  <ExtraSequence id="_4"/>
+  <WindowList id="_5"/>
+</RootStep>
