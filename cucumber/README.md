@@ -1,7 +1,3 @@
-### language: en
-
-### Example (gherkin.zip).
-
 # Requirements:
 
  1. Place the Json folder in the QF-Test Jython folder.

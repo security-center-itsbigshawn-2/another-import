@@ -1,7 +1,3 @@
-# language: de
-
-# Beispiel anbei (gherkin.zip).
-
 # Voraussätzungen:
 
  1. Json-Verzeichnis in das QF-Test jython Verzeichnis legen.
