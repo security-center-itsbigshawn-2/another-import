@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
 <RootStep id="_0" name="root"
-          signature="302C02142F2F30B813C1C4840D59C26D4B4D5164F6073B140214731796B5054CF96721B6C8547E29FA53B346A003"
-          version="5.2.2">
+          signature="302E021500BECEC7404513143A63DA5168AA4733E5AAFE3F1B021500CE954FC9474647892CC249D1648C7C875B628A27"
+          version="5.3.0">
   <include>qfs.qft</include>
   <reference>qfs.qft</reference>
   <variable name="downloadSubFolder">downloads</variable>
@@ -561,7 +561,8 @@ rc.engine.preferences().setBoolPref("firefox","browser.download.useDownloadDir",
 rc.engine.preferences().setStrPref("firefox","browser.download.defaultFolder", folder)
 rc.engine.preferences().setStrPref("firefox","browser.download.dir", folder)
 rc.engine.preferences().setBoolPref("firefox","pdfjs.disabled",True)
-rc.engine.preferences().setStrPref("firefox","browser.helperApps.neverAsk.saveToDisk", "text/plain, application/octet-stream, application/binary, text/csv, application/csv, application/excel, text/comma-separated-values, text/xml, application/xml")
+rc.engine.preferences().setStrPref("firefox","browser.helperApps.neverAsk.saveToDisk", "application/pdf; text/plain; application/octet-stream; application/binary; text/csv; application/csv; application/excel; text/comma-separated-values; text/xml; application/xml")
+rc.engine.preferences().setBoolPref("firefox","browser.helperApps.alwaysAsk.force", False)
 
 </code>
         </ClientScriptStep>
