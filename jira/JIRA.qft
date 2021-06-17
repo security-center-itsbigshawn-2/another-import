@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
 <RootStep id="_0" name="root"
-          signature="302D021500D554F1F808000BCC0C67CDD6B058E2C25C85704C021423B86FDE7BBA2CF0FE85DC290089CF724F4D34FD"
-          version="5.2.2">
+          signature="302C0214230591BEF15852E255F1965F65A24E764B18064B021457CABADE54092DC334F0426D2CD0C2694D3C278D"
+          version="5.3.1">
   <include>qfs.qft</include>
   <variable name="baseUrl">host:port</variable>
   <variable name="project">MyProject</variable>
@@ -250,7 +250,6 @@ import sun.misc.BASE64Encoder;
 
 
 HttpURLConnection conn = null;
-DataOutputStream dos = null;
 String lineEnd = "\r\n";
 String twoHyphens = "--";
 String boundary = "------------------------afb19f4aeefb356c";
@@ -272,9 +271,8 @@ if (!sourceFile.isFile()) {
     logMe("Source File not exist :" + fileName); //FullPath);
     return; //RETURN #1
 } else {
-    try {
+    try (FileInputStream fileInputStream = new FileInputStream(sourceFile)) {
         logMe("UPLOADING FILE");
-        FileInputStream fileInputStream = new FileInputStream(sourceFile);
         URL url = new URL(rc.lookup('url'));
         logMe("URL: " + url.toString());
 
@@ -297,43 +295,40 @@ if (!sourceFile.isFile()) {
         //so on and so forth...
         //conn.setRequestProperty("param", "value");
         conn.setRequestProperty("connection", "close");
-        dos = new DataOutputStream(conn.getOutputStream());
-        dos.writeBytes(twoHyphens + boundary + lineEnd);
-        dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\"" + sourceFile.getName() + "\"" + lineEnd);
-        dos.writeBytes(lineEnd);
-
-        // create a buffer of maximum size
-        bytesAvailable = fileInputStream.available();
-        bufferSize = Math.min(bytesAvailable, maxBufferSize);
-        buffer = new byte[bufferSize];
-        // read file and write it into form...
-        bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-        while (bytesRead &gt; 0) {
-            dos.write(buffer, 0, bufferSize);
+        try (DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+            dos.writeBytes(twoHyphens + boundary + lineEnd);
+            dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\"" + sourceFile.getName() + "\"" + lineEnd);
+            dos.writeBytes(lineEnd);
+            // create a buffer of maximum size
             bytesAvailable = fileInputStream.available();
             bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            buffer = new byte[bufferSize];
+            // read file and write it into form...
             bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-            logMe("-&gt;");
-        }
-        logMe("-&gt;-&gt;");
-        // send multipart form data necesssary after file data...
-        dos.writeBytes(lineEnd);
-        dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-        conn.connect();
-        logMe("-&gt;-&gt;-&gt;");
-        // Responses from the server (code and message)
-        serverResponseCode = conn.getResponseCode();
-        logMe("-&gt;-&gt;-&gt;-&gt;");
-        logMe("HTTP Response is : " + serverResponseCode);
+    
+            while (bytesRead &gt; 0) {
+                dos.write(buffer, 0, bufferSize);
+                bytesAvailable = fileInputStream.available();
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                logMe("-&gt;");
+            }
+            logMe("-&gt;-&gt;");
+            // send multipart form data necesssary after file data...
+            dos.writeBytes(lineEnd);
+            dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+            conn.connect();
+            logMe("-&gt;-&gt;-&gt;");
+            // Responses from the server (code and message)
+            serverResponseCode = conn.getResponseCode();
+            logMe("-&gt;-&gt;-&gt;-&gt;");
+            logMe("HTTP Response is : " + serverResponseCode);
         // ------------------ read the SERVER RESPONSE
-        DataInputStream inStream;
+        }
         String str = "";
         String response = "";
-        try {
+        try(DataInputStream inStream = new DataInputStream(conn.getInputStream())){
             logMe("-&gt;-&gt;-&gt;-&gt;-&gt;-&gt;");
-            inStream = new DataInputStream(conn.getInputStream());
-
             while ((str = inStream.readLine()) != null) {
                 logMe("SOF Server Response" + str);
                 response = str;
@@ -344,11 +339,6 @@ if (!sourceFile.isFile()) {
         }
         conn.disconnect();
         conn = null;
-        //close the streams //
-        fileInputStream.close();
-        dos.flush();
-        dos.close();
-
         if (serverResponseCode == 201) {
             logMe("*** SERVER RESPONSE: 201" + response);
         } //END IF Response code 201
