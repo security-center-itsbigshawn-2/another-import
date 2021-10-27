@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
 <RootStep id="_0" name="root"
-          signature="302D021434EB09A2FC87E5089FE4180AABB5E4773F3F4616021500C03572353C0EF955F3C4E5ACB2CCA0CE39258ED5"
-          version="5.2.2">
+          signature="302C0214372B86F07F443CDDA2A2645755D45DAF25F818790214634A77C6F84E04A56849FBC2AC97C9FCBA898579"
+          version="5.4.0">
   <include>qfs.qft</include>
   <reference>qfs.qft</reference>
-  <TestSet id="_1" name="set1">
+  <TestSet id="_1" name="Before QF-Test 5_3_0">
+    <comment>@obsolete</comment>
     <CommentStep id="_1k3Q">
       <heading>Log browser messages in the run-log</heading>
     </CommentStep>
-    <TestCase id="_1k3F" name="Log Chrome logs from console">
+    <TestCase id="_1k3F"
+              name="Before QF-Test 5_3_0 - Log Chrome logs from console">
       <comment>@author cacse1</comment>
       <DependencyReference id="_1k3G" reference="Open Browser">
         <variable name="connectionMode">Prefer WebDriver</variable>
@@ -20,8 +22,7 @@
       <MouseEventStep clicks="1" client="$(client)" component="accept cookies"
                       event="MOUSE_MPRC" id="_1k3k" modifiers="16"
                       postdelay="1000"/>
-      <ClientScriptStep client="$(client)" id="_1k3R" interpreter="groovy"
-                        name="Get Logs. After fetching them the logs in browser are cleared">
+      <ClientScriptStep client="$(client)" id="_1k3R" interpreter="groovy">
         <code>import de.qfs.WebDriverConnection
 import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.logging.LogEntry
@@ -37,11 +38,64 @@ rc.logMessage("Browser LogEntries: \n" + logss, true)</code>
       </ClientScriptStep>
     </TestCase>
   </TestSet>
+  <TestSet id="_1k3r" name="After QF-Test 5_3_0">
+    <CommentStep id="_1k3s">
+      <heading>Log browser messages in the run-log</heading>
+    </CommentStep>
+    <TestCase id="_1k3t"
+              name="After QF-Test 5_3_0 - Log Chrome logs from console">
+      <comment>@author cacse1</comment>
+      <DependencyReference id="_1k3u" reference="Open Browser">
+        <variable name="connectionMode">Prefer WebDriver</variable>
+        <variable name="url">https://lvz.de</variable>
+      </DependencyReference>
+      <ComponentWaiter client="$(client)" component="accept cookies"
+                       id="_1k3v" timeout="5000"/>
+      <MouseEventStep clicks="1" client="$(client)" component="accept cookies"
+                      event="MOUSE_MPRC" id="_1k3w" modifiers="16"
+                      postdelay="1000"/>
+      <CommentStep id="_1k4K">
+        <heading>&lt;font style="color:green"&gt;Look in qfs.qft#qfs.web.browser.settings.doStartupSettings</heading>
+      </CommentStep>
+      <CommentStep id="_1k4L">
+        <heading>&lt;font style="color:green"&gt;The parameter 'consoleOutputValue' is used to configure the logging</heading>
+      </CommentStep>
+      <ProcedureCall id="_1k3z"
+                     procedure="qfs.web.browser.settings.setTerminalLogs">
+        <variable name="consoleOutputValue">0</variable>
+        <variable name="startBrowserIfNotRunning">false</variable>
+      </ProcedureCall>
+    </TestCase>
+  </TestSet>
   <PackageRoot id="_3">
     <Package id="_1k1m" name="Logging">
       <Procedure id="_1k38" name="enableLoggingChromeDriver">
-        <ClientScriptStep client="$(client)" id="_1k39" interpreter="groovy">
-          <code>import org.openqa.selenium.logging.LogType
+        <TryStep id="_1k4G">
+          <ProcedureCall id="_1k4F"
+                         procedure="qfs.web.browser.settings.setTerminalLogs">
+            <variable name="consoleOutputValue">0</variable>
+            <variable name="startBrowserIfNotRunning">false</variable>
+          </ProcedureCall>
+          <CatchSequence exception="TestException" id="_1k4H" maxerror="0"/>
+        </TryStep>
+        <CommentStep id="_1k4I">
+          <heading>After QF-Test 5_3_0</heading>
+        </CommentStep>
+        <IfSequence id="_1k4A" test="'After' in '${qftest:testcase.name}'">
+          <ProcedureCall id="_1k4B"
+                         procedure="qfs.web.browser.settings.setTerminalLogs">
+            <variable name="consoleOutputValue">2</variable>
+            <variable name="startBrowserIfNotRunning">false</variable>
+          </ProcedureCall>
+        </IfSequence>
+        <CommentStep id="_1k4J">
+          <heading>Before QF-Test 5_3_0</heading>
+        </CommentStep>
+        <IfSequence id="_1k4D"
+                    test="'After' not in '${qftest:testcase.name}'">
+          <ClientScriptStep client="$(client)" id="_1k39"
+                            interpreter="groovy">
+            <code>import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.remote.CapabilityType
 import java.util.logging.Level
 import org.openqa.selenium.logging.LoggingPreferences
@@ -55,9 +109,10 @@ notifications.addObserver(notifications.CREATING_WEBDRIVER, {
     prefs.enable(LogType.DRIVER, Level.ALL);    
     it.options.setCapability(CapabilityType.LOGGING_PREFS, prefs)
 })</code>
-          <comment>https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/logging/LogType.html
+            <comment>https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/logging/LogType.html
 </comment>
-        </ClientScriptStep>
+          </ClientScriptStep>
+        </IfSequence>
       </Procedure>
     </Package>
     <Dependency id="_1k1n" name="Open Browser">
@@ -68,7 +123,7 @@ notifications.addObserver(notifications.CREATING_WEBDRIVER, {
         <comment>@author setup1</comment>
         <BasicSequence id="_1k1p" name="Set global variables">
           <SetGlobalStep id="_1k1q" varname="client">
-            <default>web</default>
+            <default>${qftest:testcase.name}</default>
           </SetGlobalStep>
           <SetGlobalStep id="_1k1r" varname="browser">
             <default>chrome</default>
@@ -121,14 +176,14 @@ notifications.addObserver(notifications.CREATING_WEBDRIVER, {
       <extrafeature name="title" negate="false" regexp="false" state="0">Start &#8211; LVZ - Leipziger Volkszeitung</extrafeature>
       <extrafeature name="url" negate="false" regexp="false" state="0">https://www.lvz.de/</extrafeature>
       <ComponentStep class="Button" classcount="2" classindex="0"
-                     feature="Zustimmen" id="accept cookies" uid="_1k3i">
+                     feature="Zustimmen|Alle akzeptieren" id="accept cookies"
+                     regexp="true" uid="_1k3i">
         <extrafeature name="class" negate="false" regexp="false" state="1">message-component message-button no-children cmp-button-primary</extrafeature>
         <extrafeature name="qfs:class" negate="false" regexp="false"
                       state="0">BUTTON:BUTTON</extrafeature>
         <extrafeature name="qfs:genericclass" negate="false" regexp="false"
                       state="0">Button</extrafeature>
-        <extrafeature name="qfs:label" negate="false" regexp="false"
-                      state="2">Zustimmen</extrafeature>
+        <extrafeature name="qfs:label" negate="false" regexp="true" state="2">Zustimmen|Alle akzeptieren</extrafeature>
         <extrafeature name="qfs:systemclass" negate="false" regexp="false"
                       state="0">BUTTON:BUTTON</extrafeature>
       </ComponentStep>
