@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE RootStep>
 <RootStep id="_0" name="File Upload"
-          signature="302D02146862D3AB9FD63A9B32AFE767D63E13D4A7C0898802150094AA66FD3C1E88AC0B3445E2031CB603F7F891FD"
-          version="5.2.3">
+          signature="302C021424C8BC9363FF38A01B34851085AA254614C227090214338EA44DD8F796F3A2CEF8FD059B9A151796E812"
+          version="6.0.4">
   <include>qfs.qft</include>
   <variable name="filename">${qftest:dir.version}/doc/licenses/apache</variable>
   <comment>How to handle File Upload and interact with the System File Choose Dialog.
@@ -317,7 +317,7 @@ button = wdc.getElement(rc.lookup("id"))
 fn = rc.lookup("filename")
 fn = fn.replace("/","\\")
 aFile = File(fn)
-button.sendKeys(aFile.getAbsolutePath())</code>
+button.sendKeys(aFile.getCanonicalPath())</code>
       </ClientScriptStep>
     </Procedure>
   </PackageRoot>
